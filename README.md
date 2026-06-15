@@ -1,58 +1,105 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# login-laravel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[元の PHP システム](https://github.com/yumyum-02/login) を Laravel で再現するプロジェクトです。
 
-## About Laravel
+## 目次
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [元のシステム](#元のシステム)
+  - [機能一覧](#機能一覧)
+  - [サーバーサイド](#サーバーサイド)
+  - [フロントエンド](#フロントエンド)
+  - [安全性](#安全性)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 元のシステム
 
-## Learning Laravel
+### 機能一覧
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| 機能 | 内容 |
+|------|------|
+| ログイン | ユーザー名・パスワード |
+| アカウント作成 | メールアドレス・ユーザー名・パスワード |
+| アカウント情報編集 | ユーザー名・アイコン・メールアドレス・パスワード |
+| アカウント削除 | — |
+| ユーザー一覧 | 登録ユーザーの一覧表示 |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### ■サーバーサイド
 
-## Agentic Development
+#### DB
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+- 定義ファイル: `src/db_data.sql`
+- テーブル名: `login_db_laravel`
 
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```sql
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  icon VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+#### バリデーション
 
-## Contributing
+- 定義ファイル: `src/functions/validation.php`
+全画面で使用
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+### ■フロントエンド
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+テンプレートは `src/template/` に配置されています。
+各画面は共通で `bootstrap.php` を読み込みます。
 
-## Security Vulnerabilities
+#### ・共通パーツ
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| パーツ | ファイル |
+|--------|----------|
+| ナビゲーション | `components/navbar.php` |
+| サイドバー | `components/sidebar.php` |
 
-## License
+#### ・画面一覧
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| 画面 | テンプレート | 使用カラム | 備考 |
+|------|--------------|------------|------|
+| ログイン | `login_template.php` | email, password | バリデーション使用 |
+| アカウント登録 | `regist_template.php` | name, email, password | バリデーション使用 |
+| ダッシュボード | `dashboard_template.php` | name | 「ようこそ、ユーザー名さん ログインに成功しました」を表示 |
+| アカウント情報 | `account_template.php` | — | ログイン中ユーザーの情報表示。各項目の変更画面へ遷移 |
+| ユーザー一覧・削除 | `admin_template.php` | email, name, id | バリデーション使用 |
+
+#### ・アカウント情報の編集画面
+
+`account_template.php` から各編集画面へ遷移します。
+キャンセル時はいずれも `admin/account.php` 経由でアカウント情報ページに戻ります。
+
+| 画面 | テンプレート | 使用カラム | 変更処理 | 補足 |
+|------|--------------|------------|----------|------|
+| ユーザー名変更 | `edit-profile_template.php` | name | — | エラー時は `old_input['name']` を表示 |
+| アイコン変更 | `edit-icon_template.php` | icon | `exec_edit-icon.php` | プレビュー・デフォルト戻しあり。1MB 以下 / 400px 以下 / PNG・JPEG |
+| メールアドレス変更 | `edit-email_template.php` | email | `exec_edit-email.php` | エラー時は `old_input['email']` を表示 |
+| パスワード変更 | `edit-password_template.php` | password | — | 現在・新規・確認の 3 項目。エラー時は旧パスワードを表示しない |
+
+---
+
+### 安全性
+
+`bootstrap.php` で以下を読み込み、セキュリティ対策を行います。
+
+| ファイル | 役割 |
+|----------|------|
+| `bootstrap.php` | `session_regenerate_id()` でセッション ID を毎回再生成 |
+| `Auth/AuthUser.php` | ユーザー認証 |
+| `functions/csrf.php` | CSRF 対策 |
+| `functions/validation-error.php` | バリデーションエラー処理 |
+| `functions/redirect.php` | リダイレクト |
+| `functions/sanitize.php` | XSS 対策（エスケープ） |
+| `functions/logout.php` | ログアウト |
+| `functions/session-message.php` | セッションメッセージ取得 |
+| `functions/icon-file.php` | アイコンファイル操作 |
+| `functions/display_icon.php` | アイコン表示 |
