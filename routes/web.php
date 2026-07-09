@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RegisterController;
 
 Route::get('/', function () {
     return view('auth/login');
 });
 
-Route::get('/regist', function(){
-    return view('auth/regist');
-});
+// 会員登録画面表示
+Route::get('/regist', [RegisterController::class, 'create']);
+Route::post('/regist', [RegisterController::class, 'store']);
 
 Route::get('/dashboard', function() {
     return view('dashboard');

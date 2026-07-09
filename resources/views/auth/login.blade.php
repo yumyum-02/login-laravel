@@ -17,7 +17,10 @@
           <div class="card-body p-4">
             <h2 class="card-title text-center mb-4">ログイン</h2>
 
-            <div class="alert alert-success" role="alert"></div>
+            @if (session('message'))
+            <div class="alert alert-success" role="alert">{{ session('message') }}</div>
+            @endif
+
             <div class="alert alert-danger" role="alert"></div>
 
             <form action="./exec_login.php" method="post">
@@ -51,7 +54,7 @@
 
             <hr class="my-4">
             <p class="text-center mb-0">
-              <a href="./regist" class="text-decoration-none">会員登録はこちら →</a>
+              <a href="{{ url('/regist')}}" class="text-decoration-none">会員登録はこちら →</a>
             </p>
           </div>
         </div>
