@@ -9,7 +9,7 @@ use Illuminate\View\View;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password;
 
 
 class RegisterController extends Controller
