@@ -24,7 +24,7 @@
               <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
               @endif
 
-            <form action="{{ url('/login')}}" method="post">
+            <form action="{{ route('login')}}" method="post">
               @csrf
               <div class="mb-3">
                 <label for="email" class="form-label">メールアドレス</label>
