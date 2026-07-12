@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\LoginController;
 
-Route::get('/', function () {
-    return view('auth/login');
-});
+// ログイン画面表示
+Route::get('/', [LoginController::class, 'create']);
+Route::post('/', [LoginController::class, 'store']);
 
 // 会員登録画面表示
 Route::get('/regist', [RegisterController::class, 'create']);
