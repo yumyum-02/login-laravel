@@ -17,39 +17,52 @@
           <div class="card-body p-4">
             <h2 class="card-title text-center mb-4">ログイン</h2>
 
-            @if (session('message'))
-            <div class="alert alert-success" role="alert">{{ session('message') }}</div>
-            @endif
+              @if (session('message'))
+              <div class="alert alert-success" role="alert">{{ session('message') }}</div>
+              @endif
+              @if (session('error'))
+              <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
+              @endif
 
-            <div class="alert alert-danger" role="alert"></div>
-
-            <form action="./exec_login.php" method="post">
+            <form action="{{ route('login')}}" method="post">
+              @csrf
               <div class="mb-3">
                 <label for="email" class="form-label">メールアドレス</label>
                 <input type="email"
-                       class="form-control"
+                       class="form-control @error('email') is-invalid @enderror"
                        id="email"
                        name="email"
                        placeholder=""
-                       value="email">
+                       value="{{ old('email')}}">
+
+                @error('email')
+                  <div class="invalid-feedback d-block">
+                    @foreach ($errors->get('email') as $error)
+                      <div>{{ $error }}</div>
+                    @endforeach
+                  </div>
+                @enderror
               </div>
               <div class="mb-4">
                 <label for="password" class="form-label">パスワード</label>
                 <input type="password"
-                       class="form-control"
+                       class="form-control @error('password') is-invalid @enderror"
                        id="password"
                        name="password"
                        placeholder="">
 
+                @error('password')
                   <div class="invalid-feedback d-block">
-                      <div></div>
+                    @foreach ($errors->get('password') as $error)
+                      <div>{{ $error }}</div>
+                    @endforeach
                   </div>
+                @enderror
               </div>
               <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg" name="login_btn">ログイン</button>
               </div>
 
-              <input type="hidden" name="csrf_token" value="">
             </form>
 
             <hr class="my-4">
