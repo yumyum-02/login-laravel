@@ -32,5 +32,5 @@ Route::get('edit-username' , function(){
 })->name('edit-username')->middleware('auth');
 
 // ユーザー情報変更処理
-// ユーザー名変更
+// ユーザー名変更 update
 Route::post('edit-username' , [EditUsernameController::class, 'update'])->name('update-username')->middleware('auth');

@@ -62,6 +62,7 @@ Route::get('edit-username' , function(){
 ```
 php artisan make:controller EditUsernameController
 ```
+ここまでのコミット：https://github.com/yumyum-02/login-laravel/commit/77e303644f40abf1d2a39609fb7fc1c85c50483b
 
 # 3-4.コントローラーに処理を記述
 元phpファイル public/account-edit/exec_edit-profile.php
@@ -84,3 +85,27 @@ php artisan make:controller EditUsernameController
   以下のため今回は不要
   - Laravelではバリデーションエラーの時点で更新を止め、edit-username 画面に戻すことができる。old('name') と @error('name') を使えるようにすることもできるため
   - システムやDBエラー時は Laravel の例外処理が起こるため自作が不要
+
+## 3-4-1 ユーザー名変更：バリデーションの追加
+参考：https://readouble.com/laravel/12.x/ja/validation.html
+今回は一旦バリデーションの共通化はなしで進める
+
+nameのバリデーション
+- 必須、使用できない文字、3文字以上16字以内
+文字はpreg_match('/^[a-zA-Z0-9 \x{3041}-\x{3096}\x{30A1}-\x{30FC}\x{4E00}-\x{9FFF}\x{3400}-\x{4DBF}]+$/u')
+```
+public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
+        ]);
+    }
+```
+
+## 3-4-2 ユーザー名変更：名前の更新
+
+$request->user()で認証済みのユーザーを取得
+https://readouble.com/laravel/12.x/ja/authentication.html#retrieving-the-authenticated-user
+
+->updateで情報の更新
+https://readouble.com/laravel/12.x/ja/eloquent.html#updates

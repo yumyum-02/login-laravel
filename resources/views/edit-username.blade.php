@@ -34,7 +34,7 @@
               </h5>
             </div>
             <div class="card-body p-4">
-            <form action="{{ route('edit-username') }}" method="post">
+            <form action="{{ route('update-username') }}" method="post">
               @csrf
               <!-- ユーザー名 -->
               <div class="row align-items-center">
