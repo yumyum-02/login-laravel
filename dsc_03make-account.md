@@ -109,3 +109,48 @@ https://readouble.com/laravel/12.x/ja/authentication.html#retrieving-the-authent
 
 ->updateで情報の更新
 https://readouble.com/laravel/12.x/ja/eloquent.html#updates
+
+ここまでの変更：https://github.com/yumyum-02/login-laravel/commit/6f86c6aa72574675382ac518df3e80e33fc0c8c7
+
+
+バリデーションに通った値（$validated）のみ更新に使う
+参照：https://readouble.com/laravel/12.x/ja/validation.html#working-with-validated-input
+
+```
+$validated = $request->validate([
+    'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
+]);
+
+// ユーザー名更新
+$request->user()->update([
+    'name' => $validated['name'],
+]);
+```
+
+## 3-4-3 エラーの表示
+```
+@error('name')
+  <div class="invalid-feedback d-block">
+    @foreach ($errors->get('name') as $error)
+      <div>{{ $error }}</div>
+    @endforeach
+  </div>
+@enderror
+```
+
+エラーメッセージの日本語定義
+参考：https://readouble.com/laravel/12.x/ja/validation.html#customizing-the-error-messages
+
+```
+$validated = $request->validate(
+  [
+      'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
+  ],
+  [
+      'name.required' => 'ユーザー名は必須です。',
+      'name.regex' => 'ユーザー名は半角英数字、ひらがな、カタカナ、漢字のみ使用できます。',
+      'name.min' => 'ユーザー名は3文字以上です。',
+      'name.max' => 'ユーザー名は16文字以内です。',
+  ]
+);
+```

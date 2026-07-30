@@ -52,7 +52,7 @@
 
                   @error('name')
                     <div class="invalid-feedback d-block">
-                      @foreach ($errors as $error)
+                      @foreach ($errors->get('name') as $error)
                         <div>{{ $error }}</div>
                       @endforeach
                     </div>
