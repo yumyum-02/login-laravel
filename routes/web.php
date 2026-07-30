@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\EditUsernameController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -22,4 +23,14 @@ Route::get('/dashboard', function() {
 Route::get('account' , function() {
     $user = Auth::user();
     return view('account',['user' => $user]);
-})->middleware('auth');
+})->name('account')->middleware('auth');
+
+// ユーザー情報変更画面表示
+Route::get('edit-username' , function(){
+    $user = Auth::user();
+    return view('edit-username',['user' => $user]);
+})->name('edit-username')->middleware('auth');
+
+// ユーザー情報変更処理
+// ユーザー名変更
+Route::post('edit-username' , [EditUsernameController::class, 'update'])->name('update-username')->middleware('auth');
