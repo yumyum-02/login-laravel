@@ -34,7 +34,7 @@
               </h5>
             </div>
             <div class="card-body p-4">
-            <form action="../account-edit/exec_edit-email.php" method="post">
+            <form action="{{ route('update-email') }}" method="post">
               <!-- メールアドレス -->
               <div class="row align-items-center">
                 <div class="col-sm-3">
@@ -49,13 +49,13 @@
                          name="email"
                          value="{{ old('email') ?? $user->email }}">
 
-                  <?php if (!empty($errors)): ?>
+                    @error('email')
                     <div class="invalid-feedback d-block">
-                      <?php foreach ($errors as $error): ?>
-                        <div><?= escape($error) ?></div>
-                      <?php endforeach; ?>
+                      @foreach ($errors->get('email') as $error)
+                        <div>{{ $error }}</div>
+                      @endforeach
                     </div>
-                  <?php endif; ?>
+                  @enderror
                 </div>
               </div>
             </div>
