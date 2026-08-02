@@ -31,9 +31,9 @@
         </a>
       </li>
       <li class="nav-item mt-3">
-        <form action="" method="post" class="p-2">
-          <input type="hidden" name="csrf_token" value="">
-          <button type="submit" class="btn btn-outline-danger btn-sm w-100" name="logout">
+        <form action="{{ route('logout') }}" method="post" class="p-2">
+          @csrf
+          <button type="submit" class="btn btn-outline-danger btn-sm w-100">
             <i class="bi bi-box-arrow-right me-1"></i>ログアウト
           </button>
         </form>

@@ -98,20 +98,20 @@ use Illuminate\Validation\ValidationException;
 - 変数名に特別な意味はなく、配列をそのまま渡してもよい
 - `mb_strtolower` は登録時と同じく小文字化するためのもの
 
-### 2-4. ログアウト（`destroy`）※メソッドのみ
+### 2-4. ログアウト（`destroy`）
+
+メソッドの下書きはある。ルート接続とサイドバーからは [dsc_02-2make-logout.md](./dsc_02-2make-logout.md) で実装する。
 
 ```php
-public function destroy(): RedirectResponse
+public function destroy(Request $request): RedirectResponse
 {
     Auth::logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     return redirect('/');
 }
-```
-
-※ `LoginController` にメソッドはあるが、このブランチではルート未接続。必要になったら追加する。
-
-```php
-Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth');
 ```
 
 ---
@@ -294,7 +294,7 @@ Route::get('/', [LoginController::class, 'create'])
 
 ## 次のステップ案
 
-- ログアウト用ルートの接続と画面から呼ぶボタン
+- ~~ログアウト用ルートの接続と画面から呼ぶボタン~~ → [dsc_02-2make-logout.md](./dsc_02-2make-logout.md)
 - ログイン成功後の `$request->session()->regenerate()`（セッション固定攻撃対策）
 - 認証済みユーザー向け `guest` + `redirectUsersTo`（任意）
 - ダッシュボードでログイン中ユーザー情報の表示（`Auth::user()`）
