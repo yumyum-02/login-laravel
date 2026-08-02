@@ -43,9 +43,13 @@ class LoginController extends Controller
     }
 
     // ログアウト処理
-    public function destroy(): RedirectResponse
+    public function destroy(Request $request): RedirectResponse
     {
         Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }
