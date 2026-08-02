@@ -18,6 +18,7 @@ class EditEmailController extends Controller
                 'email.required' => 'メールアドレスは必須です。',
                 'email.email' => 'メールアドレスの形式が不正です。',
                 'email.max' => 'メールアドレスは255文字以内です。',
+                'email.unique' => 'そのメールアドレスはすでに使用されています。',
             ]
         );
 

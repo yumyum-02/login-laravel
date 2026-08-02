@@ -160,7 +160,7 @@ return redirect()->route('account');
 
 ### 対象コミット
 
-- バリデーション、更新、エラーメッセージ表示：
+- バリデーション、更新、エラーメッセージ表示：https://github.com/yumyum-02/login-laravel/commit/921ed1eeb7da86a53efd571c49fb0157b9a74f6a
 
 ---
 
