@@ -30,9 +30,13 @@ Route::get('edit-username' , function(){
     $user = Auth::user();
     return view('edit-username',['user' => $user]);
 })->name('edit-username')->middleware('auth');
-
-// ユーザー情報変更処理
 // ユーザー名変更 update
 Route::post('edit-username' , [EditUsernameController::class, 'update'])->name('update-username')->middleware('auth');
+
+// メールアドレス変更画面表示
+Route::get('edit-email' , function(){
+    $user = Auth::user();
+    return view('edit-email',['user' => $user]);
+})->name('edit-email')->middleware('auth');
 // メールアドレス変更 update
 Route::post('edit-email' , [EditEmailController::class, 'update'])->name('update-email')->middleware('auth');
