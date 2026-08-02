@@ -58,7 +58,7 @@ https://github.com/yumyum-02/login-laravel/commit/acae0926b64da0ad4c6da390dd751d
 元ファイル: `public/account-edit/exec_edit-email.php`
 
 #### 3-1.コントローラーに書くこと
-・バリデーション
+・バリデーション（必須、形式、文字数、すでに使われているアドレスか）
 ・エラー時にedit-emailへ戻す
 ・メールアドレスのアップデート
 ・成功時に../admin/account.phpにリダイレクト
@@ -72,6 +72,7 @@ https://github.com/yumyum-02/login-laravel/commit/acae0926b64da0ad4c6da390dd751d
 ルール:
 
 - 必須
+- アドレスの重複
 - メールアドレスの形式
 - 255文字以内
 
@@ -86,18 +87,23 @@ https://readouble.com/laravel/12.x/ja/validation.html#rule-email
 ※email：RFCに沿った判定をする
 ※元のPHPと一緒なのはemail:filterだが、Laravelらしい書き方ならemailで十分
 
+重複の確認
+https://readouble.com/laravel/12.x/ja/validation.html#rule-unique
+'unique:users,email,' . $request->user()->id
+
 ```php
 public function update(Request $request): RedirectResponse
 {
     // バリデーション
     $validated = $request->validate(
         [
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required','email', 'max:255', 'unique:users,email,' . $request->user()->id],
         ],
         [
             'email.required' => 'メールアドレスは必須です。',
             'email.email' => 'メールアドレスの形式が不正です。',
             'email.max' => 'メールアドレスは255文字以内です。',
+            'email.unique' => 'そのメールアドレスはすでに使用されています。',
         ]
     );
 }
@@ -149,6 +155,7 @@ return redirect()->route('account');
 ### 3-5. フォームのリンク先修正
 ```
 <form action="{{ route('update-email') }}" method="post">
+@csrf
 ```
 
 ### 対象コミット

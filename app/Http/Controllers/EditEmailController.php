@@ -12,7 +12,7 @@ class EditEmailController extends Controller
         // バリデーション
         $validated = $request->validate(
             [
-                'email' => ['required', 'email', 'max:255'],
+                'email' => ['required','email', 'max:255', 'unique:users,email,' . $request->user()->id],
             ],
             [
                 'email.required' => 'メールアドレスは必須です。',

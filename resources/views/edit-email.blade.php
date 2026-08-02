@@ -35,6 +35,7 @@
             </div>
             <div class="card-body p-4">
             <form action="{{ route('update-email') }}" method="post">
+              @csrf
               <!-- メールアドレス -->
               <div class="row align-items-center">
                 <div class="col-sm-3">
@@ -45,7 +46,7 @@
                 </div>
                 <div class="col-sm-9">
                   <input type="text"
-                         class="form-control <?= !empty($errors) ? 'is-invalid' : '' ?>"
+                         class="form-control @error('email') is-invalid @enderror"
                          name="email"
                          value="{{ old('email') ?? $user->email }}">
 
