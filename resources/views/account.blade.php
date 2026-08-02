@@ -92,7 +92,7 @@
                   <p class="mb-0">{{ $user->email }}</p>
                 </div>
                 <div class="col-sm-3 text-end">
-                  <a href="../account-edit/edit-email.php" class="btn btn-outline-secondary btn-sm">
+                  <a href="{{ route('edit-email') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>変更
                   </a>
                 </div>
