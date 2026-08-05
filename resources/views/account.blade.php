@@ -110,7 +110,7 @@
                   <p class="mb-0 text-muted">••••••••</p>
                 </div>
                 <div class="col-sm-3 text-end">
-                  <a href="../account-edit/edit-password.php" class="btn btn-outline-secondary btn-sm">
+                  <a href="{{ route('edit-password') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>変更
                   </a>
                 </div>

@@ -5,6 +5,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EditUsernameController;
 use App\Http\Controllers\EditEmailController;
+use App\Http\Controllers\EditPasswordController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -46,3 +47,11 @@ Route::get('edit-email' , function(){
 })->name('edit-email')->middleware('auth');
 // メールアドレス変更 update
 Route::post('edit-email' , [EditEmailController::class, 'update'])->name('update-email')->middleware('auth');
+
+//　パスワード変更画面表示
+Route::get('edit-password' , function(){
+    $user = Auth::user();
+    return view('edit-password', ['user' => $user]);
+})->name('edit-password')->middleware('auth');
+// メールアドレス変更 update
+Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');
