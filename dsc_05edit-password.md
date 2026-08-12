@@ -2,7 +2,7 @@
 
 パスワード変更（画面表示・更新処理）を実装した流れをまとめたもの。
 
-前提: [dsc_03edit-accout-username.md](./dsc_03edit-accout-username.md) のアカウント情報・ユーザー名変更が動いていること。
+前提: [dsc_04edit-email.md](./dsc_04edit-email.md) のメールアドレス変更が動いていること（アカウント画面・認証があること）。
 
 参考サイト: [Laravel 12.x 日本語ドキュメント（readouble.com）](https://readouble.com/laravel/12.x/ja)
 
@@ -11,9 +11,9 @@
 ## 全体の流れ
 
 ```
-GET  /edit-password  → クロージャ + auth     → パスワード変更フォーム表示
-POST /edit-password  → EditpasswordController@update
-                  → バリデーション → DB更新 → /account へ
+GET  /edit-password  → クロージャ + auth              → パスワード変更フォーム表示
+POST /edit-password  → EditPasswordController@update
+                     → バリデーション → DB更新 → セッション再生成 → /account へ
 ```
 
 | 画面 / 処理 | URL | 名前 | 備考 |
@@ -37,6 +37,10 @@ POST /edit-password  → EditpasswordController@update
 </a>
 ```
 
+### 対象コミット
+
+- 変更画面・コントローラー用意: [4d17c27](https://github.com/yumyum-02/login-laravel/commit/4d17c27f24fc3f3fe8c9abd0f6fda65a356ce07d)
+
 ---
 
 ## 2. パスワード変更画面（表示）
@@ -44,6 +48,9 @@ POST /edit-password  → EditpasswordController@update
 ### 2-1. ルート（`routes/web.php`）
 
 ```php
+use App\Http\Controllers\EditPasswordController;
+use Illuminate\Support\Facades\Auth;
+
 Route::get('edit-password', function () {
     $user = Auth::user();
     return view('edit-password', ['user' => $user]);
@@ -59,9 +66,18 @@ CSS と共通パーツ:
 
 <x-navbar></x-navbar>
 <x-sidebar></x-sidebar>
+```
 
+フォームの送信先は **更新用ルート名** にする（画面表示用の `edit-password` ではない）。
+
+確認用欄の名前は `new_password_confirmation` にする（`same:new_password` で一致チェックするため）。
+
+```blade
 <form action="{{ route('update-password') }}" method="post">
   @csrf
+  <input type="password" name="current_password">
+  <input type="password" name="new_password">
+  <input type="password" name="new_password_confirmation">
   ...
 </form>
 ```
@@ -69,26 +85,24 @@ CSS と共通パーツ:
 ### 2-3. コントローラーの作成
 
 ```bash
-php artisan make:controller EditpasswordController
+php artisan make:controller EditPasswordController
 ```
 
 更新処理用ルート:
 
 ```php
-use App\Http\Controllers\EditpasswordController;
-
-Route::post('edit-password', [EditpasswordController::class, 'update'])
+Route::post('edit-password', [EditPasswordController::class, 'update'])
     ->name('update-password')
     ->middleware('auth');
 ```
 
 - URL（パス）は GET と同じ `edit-password` でよい
 - `name` は衝突するため `update-password` と分ける
-- 先頭で `use App\Http\Controllers\EditpasswordController;` を忘れない
+- 先頭で `use App\Http\Controllers\EditPasswordController;` を忘れない
 
 ### 対象コミット
 
-- 変更画面・コントローラー用意: 
+- 変更画面・コントローラー用意: [4d17c27](https://github.com/yumyum-02/login-laravel/commit/4d17c27f24fc3f3fe8c9abd0f6fda65a356ce07d)
 
 ---
 
@@ -102,19 +116,19 @@ Route::post('edit-password', [EditpasswordController::class, 'update'])
 
 | 元 PHP | Laravel |
 |--------|---------|
-| パスワード形式チェック（`filter_var`）・必須・文字数・重複 | `$request->validate([...])` |
-| エラー時に edit-password へ戻す | `validate()` 失敗時に Laravel が自動で戻す |
-| パスワードの更新 | `$request->user()->update([...])` |
+| `getCurrentPasswordErrors` | `current_password` ルール |
+| `getPasswordValidationErrors` | `required` / `regex` / `min` / `max` / `Password::...` |
+| `getPasswordCheck` | `new_password_confirmation` に `required` + `same:new_password` |
+| `password_hash` + `updateUser` | `$request->user()->update(['password' => ...])`（モデルの `hashed` キャストでハッシュ化） |
+| `session_regenerate_id(true)` | `$request->session()->regenerate()` |
 | `redirect('../admin/account.php')` | `redirect()->route('account')` |
 
 #### コントローラーに書かなくてよいこと
 
 | 元 PHP | Laravel での担当 |
 |--------|------------------|
-| ログイン必須チェック | ルートの `middleware('auth')` |
+| `requireLogin(...)` | ルートの `middleware('auth')` |
 | CSRF 検証 | Blade の `@csrf` |
-| 入力の前後空白削除 | Laravel が自動削除 |
-| セッションの `password` 更新 | 不要（DB 更新後、表示時に最新を読む） |
 | try-catch（システム / DB エラー） | Laravel の例外処理に任せる（今回は自作しない） |
 
 ---
@@ -124,67 +138,77 @@ Route::post('edit-password', [EditpasswordController::class, 'update'])
 参考:
 
 - [バリデーション](https://readouble.com/laravel/12.x/ja/validation.html)
-- [password](https://readouble.com/laravel/12.x/ja/validation.html#rule-password)
-- [unique](https://readouble.com/laravel/12.x/ja/validation.html#rule-unique)
+- [current_password](https://readouble.com/laravel/12.x/ja/validation.html#rule-current-password)
+- [same](https://readouble.com/laravel/12.x/ja/validation.html#rule-same)
+- [Password ルールオブジェクト](https://readouble.com/laravel/12.x/ja/validation.html#validating-passwords)
 
-ルール（順番どおり）:
+#### 現在のパスワード
 
-- 必須
-- パスワードの形式
-- 255文字以内
-- 他ユーザーと重複していないこと
-
-元 PHP の形式チェック:
-
-```text
-return filter_var($password, FILTER_VALIDATE_password) !== false;
-```
-
-Laravel 版では `password` ルールでよい。
-
-- `password` … RFC に沿った判定（Laravel らしい書き方）
-- `password:filter` … 元 PHP の `filter_var` に近い（今回は使わない）
-
-重複チェック:
-
-```text
-unique:users,password,{自分のユーザーID}
-```
-
-末尾の ID は「自分の今のパスワードはそのままOK」にするため。
+元 PHP の `password_verify` 相当。`authentication.html#password-confirmation`（別画面での再入力）とは別物。
 
 ```php
-'password' => ['required', 'password', 'max:255', 'unique:users,password,' . $request->user()->id],
+'current_password' => ['required', 'current_password'],
 ```
+
+#### 新しいパスワード
+
+元 PHP のルール:
+
+- 必須
+- 使える文字: 半角英数字と記号 `!@#$%^&*()-_+=`
+- 8文字以上 64文字以内
+- 確認用と一致
+
+Laravel 版では、上に加えて会員登録と同じ強さ（`Password::min(8)->letters()->mixedCase()->numbers()->symbols()`）も付ける。
+
+確認用は **確認欄側** にルールを付けて、エラーも確認欄の下に出す。
+
+```php
+'new_password' => [
+    'bail',
+    'required',
+    'regex:/^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/',
+    'min:8',
+    'max:64',
+    Password::min(8)
+        ->letters()
+        ->mixedCase()
+        ->numbers()
+        ->symbols(),
+],
+'new_password_confirmation' => ['required', 'same:new_password'],
+```
+
+- `required` … 確認欄が空ならエラー（確認欄に表示）
+- `same:new_password` … 新しいパスワードと一致しなければエラー（確認欄に表示）
+
+`confirmed` だとエラーが `new_password` 側に付くため、今回は使わない。
 
 ---
 
-### 3-3. DB 更新とリダイレクト
+### 3-3. DB 更新・セッション再生成・リダイレクト
 
 参考:
 
 - [認証済みユーザーの取得](https://readouble.com/laravel/12.x/ja/authentication.html#retrieving-the-authenticated-user)
 - [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
-- [バリデーション済み入力値の取得](https://readouble.com/laravel/12.x/ja/validation.html#working-with-validated-input)
-
-チェックに通った値だけを更新に使う。
+- [認証 — ログイン（session regenerate）](https://readouble.com/laravel/12.x/ja/authentication.html#authenticating-users)
 
 ```php
-$validated = $request->validate([/* ルール */], [/* メッセージ */]);
-
 $request->user()->update([
-    'password' => $validated['password'],
+    'password' => $validated['new_password'],
 ]);
+
+$request->session()->regenerate();
 
 return redirect()->route('account');
 ```
 
-- `$request->user()` … ログイン中ユーザー（= 元の `$_SESSION['user']`）
-- `$validated['password']` … チェック済みの値（`$request->password` より意図がはっきりする）
+注意:
 
-### 対象コミット
-
-- バリデーション・更新・エラー表示: [921ed1e](https://github.com/yumyum-02/login-laravel/commit/921ed1eeb7da86a53efd571c49fb0157b9a74f6a)
+- User モデルに `'password' => 'hashed'` があるため、**`Hash::make` は書かない**（二重ハッシュになる）
+- `$request->user()` … ログイン中ユーザー
+- `$validated['new_password']` … チェック済みの新しいパスワード
 
 ---
 
@@ -192,49 +216,42 @@ return redirect()->route('account');
 
 #### Blade
 
-`password` のエラーをすべて出す。入力欄の赤枠も `@error` で付ける。
+各欄のエラーを `@error` で出す。
 
 ```blade
-<input type="text"
-       class="form-control @error('password') is-invalid @enderror"
-       name="password"
-       value="{{ old('password') ?? $user->password }}">
+<input type="password"
+       class="form-control @error('current_password') is-invalid @enderror"
+       name="current_password">
 
-@error('password')
+@error('current_password')
   <div class="invalid-feedback d-block">
-    @foreach ($errors->get('password') as $error)
+    @foreach ($errors->get('current_password') as $error)
       <div>{{ $error }}</div>
     @endforeach
   </div>
 @enderror
 ```
 
-- `@error('password')` … `password` にエラーがあるときだけ囲む
-- `$errors->get('password')` … **`password` だけ**のメッセージ配列（`$errors` 全体ではない）
+`new_password` / `new_password_confirmation` も同様。
 
 #### コントローラー（メッセージの日本語化）
 
 参考: [エラーメッセージのカスタマイズ](https://readouble.com/laravel/12.x/ja/validation.html#customizing-the-error-messages)
 
 ```php
-$validated = $request->validate(
-    [
-        'password' => ['required', 'password', 'max:255', 'unique:users,password,' . $request->user()->id],
-    ],
-    [
-        'password.required' => 'パスワードは必須です。',
-        'password.password' => 'パスワードの形式が不正です。',
-        'password.max' => 'パスワードは255文字以内です。',
-        'password.unique' => 'そのパスワードはすでに使用されています。',
-    ]
-);
+[
+    'current_password.required' => '現在のパスワードを入力してください。',
+    'current_password.current_password' => '現在のパスワードが正しくありません。',
+    'new_password.required' => 'パスワードを入力してください。',
+    'new_password.regex' => 'パスワードは半角英数字と記号で入力してください。',
+    'new_password.min' => 'パスワードは8文字以上64文字以内で入力してください。',
+    'new_password.max' => 'パスワードは8文字以上64文字以内で入力してください。',
+    'new_password_confirmation.required' => 'パスワード（確認用）を入力してください。',
+    'new_password_confirmation.same' => 'パスワードが一致していません。',
+]
 ```
 
-完成形のメソッド全体は `app/Http/Controllers/EditpasswordController.php` の `update` を参照。
-
-### 対象コミット
-
-- バリデーション・更新・エラー表示: [921ed1e](https://github.com/yumyum-02/login-laravel/commit/921ed1eeb7da86a53efd571c49fb0157b9a74f6a)
+完成形のメソッド全体は `app/Http/Controllers/EditPasswordController.php` の `update` を参照。
 
 ---
 
@@ -244,20 +261,25 @@ $validated = $request->validate(
 
 ### 正常系
 
-- [ ] 新しい未使用パスワードで保存 → account に移動し、パスワードが更新されている
-- [ ] 自分の今のパスワードのまま保存 → 成功（自分自身は重複扱いにしない）
+- [ ] 正しい現在パスワード + 条件を満たす新しいパスワード（確認一致）→ account へ移動
+- [ ] 変更後、新しいパスワードでログインできる
+- [ ] 変更後、古いパスワードではログインできない
 - [ ] キャンセル → 更新せず account へ
 
 ### 異常系
 
-- [ ] （空欄）→ 「パスワードは必須です。」
-- [ ] `not-an-password` → 「パスワードの形式が不正です。」
-- [ ] 256文字以上 → 「パスワードは255文字以内です。」
-- [ ] 他ユーザーが使っているパスワード → 「そのパスワードはすでに使用されています。」
-- [ ] エラー後 → 入力欄にさっきの値が残っている
+- [ ] 現在パスワードが空 → 「現在のパスワードを入力してください。」
+- [ ] 現在パスワードが違う → 「現在のパスワードが正しくありません。」
+- [ ] 新しいパスワードが空 → 「パスワードを入力してください。」
+- [ ] 使えない文字のみ → 「パスワードは半角英数字と記号で入力してください。」
+- [ ] 7文字以下 → 「パスワードは8文字以上64文字以内で入力してください。」
+- [ ] 確認用が空 → 確認欄に「パスワード（確認用）を入力してください。」
+- [ ] 確認用と不一致 → 確認欄に「パスワードが一致していません。」
+- [ ] 英字のみなど（Password ルール未充足）→ 強さに関するエラー
 
 ### セキュリティ・画面
 
 - [ ] ログアウト後に `/edit-password` → ログイン画面へ
 - [ ] ログアウト後に POST のみ → ログイン画面へ（`update` は動かない）
-- [ ] 変更後の account → 新しいパスワードが表示される
+- [ ] `@csrf` がある（無いと 419）
+- [ ] 確認欄の name が `new_password_confirmation`

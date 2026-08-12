@@ -53,5 +53,5 @@ Route::get('edit-password' , function(){
     $user = Auth::user();
     return view('edit-password', ['user' => $user]);
 })->name('edit-password')->middleware('auth');
-// メールアドレス変更 update
+// パスワード変更 update
 Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');

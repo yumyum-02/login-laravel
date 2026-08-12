@@ -35,6 +35,7 @@
             </div>
             <div class="card-body p-4">
             <form action="{{ route('update-password') }}" method="post">
+              @csrf
               <!-- 現在のパスワード -->
               <div class="mb-3">
                 <label class="form-label">
@@ -87,11 +88,11 @@
                   </div>
                 </label>
                 <input type="password"
-                      class="form-control @error('new_password_confirm') is-invalid @enderror"
-                       name="new_password_confirm">
-                  @error('new_password_confirm')
+                       class="form-control @error('new_password_confirmation') is-invalid @enderror"
+                       name="new_password_confirmation">
+                  @error('new_password_confirmation')
                     <div class="invalid-feedback d-block">
-                      @foreach ($errors->get('new_password_confirm') as $error)
+                      @foreach ($errors->get('new_password_confirmation') as $error)
                         <div>{{ $error }}</div>
                       @endforeach
                     </div>
