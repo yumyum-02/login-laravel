@@ -8,6 +8,8 @@
     </a>
     <div class="d-flex align-items-center">
       <span class="text-white me-3 d-none d-md-inline d-flex align-items-center">
+        <!-- アイコン -->
+        {{ Auth::user()->name }}
       </span>
     </div>
   </div>
