@@ -72,7 +72,14 @@ CSS と共通パーツ:
 </form>
 ```
 
-ここまでの変更：
+ここまでの変更：https://github.com/yumyum-02/login-laravel/commit/2cc308dd398068144fb701fd34095192836ebe4e
+
+
+
+
+
+
+
 
 ### 2-3. コントローラーの作成
 
