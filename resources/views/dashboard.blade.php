@@ -16,7 +16,7 @@
 
   <main class="p-4">
     <div class="mb-4">
-      <h1 class="h3 fw-bold mb-1">ようこそ、さん</h1>
+      <h1 class="h3 fw-bold mb-1">ようこそ、{{ Auth::user()->name }}さん</h1>
       <p class="text-muted mb-0">ログインに成功しました</p>
     </div>
 
