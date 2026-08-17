@@ -8,6 +8,11 @@ use App\Http\Controllers\LoginController;
 Route::get('/', [LoginController::class, 'create'])->name('login');
 Route::post('/', [LoginController::class, 'store']);
 
+// ログアウト
+Route::post('/logout', [LoginController::class, 'destroy'])
+    ->name('logout')
+    ->middleware('auth');
+
 // 会員登録画面表示
 Route::get('/regist', [RegisterController::class, 'create']);
 Route::post('/regist', [RegisterController::class, 'store']);
