@@ -61,7 +61,7 @@
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <!-- アイコン表示 -->
+                  <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" width="80" height="80">
                 </div>
                 <div class="col-sm-3 text-end">
                   <a href="{{ route('edit-icon') }}" class="btn btn-outline-secondary btn-sm">

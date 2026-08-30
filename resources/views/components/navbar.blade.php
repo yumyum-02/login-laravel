@@ -8,7 +8,7 @@
     </a>
     <div class="d-flex align-items-center">
       <span class="text-white me-3 d-none d-md-inline d-flex align-items-center">
-        <!-- アイコン -->
+        <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
         {{ Auth::user()->name }}
       </span>
     </div>

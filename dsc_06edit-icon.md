@@ -23,6 +23,13 @@ POST /edit-icon  → EditIconController@update
 
 ---
 
+## 0.アイコンの表示
+一旦デフォルトのアイコンをヘッダーとアカウント情報ページに表示
+acconut.blede.phpとnavbar.blede.phpに以下
+```
+<img src="{{ asset('images/icon/default-icon.png')}}">
+```
+
 ## 1. アカウント情報画面からのリンク
 
 ### 1-1. Blade（`resources/views/account.blade.php`）
