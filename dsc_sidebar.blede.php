@@ -1,4 +1,7 @@
 # 管理者用のメニューを作る
+・新規ユーザーはデフォルトでuserになる
+・管理者はadminになる
+・テストとしてtinkerでadminをユーザーに付与する
 
 ## 1.フロント
 userのroleがadminの場合のみ表示する
@@ -37,3 +40,21 @@ $table->dropColumn('role');
 ```
 php artisan migrate
 ```
+
+## 3.シーダー
+tinkerで試す場合
+(一度だけ手元で直すなら tinker、何度でも同じ初期データを作り直すならシーダー)
+
+```
+php artisan tinker
+
+$user = \App\Models\User::where('email', '自分のメール@example.com')->first();
+$user->role = 'admin';
+$user->save();
+```
+
+一旦これで管理者を作成しておく。
+あとでadminユーザーについて考える
+・そもそもユーザーの削除は本人で行えば良いのでは？
+・adminは作ってみたかっただけなのでedit/sidebarの変更自体不要かも
+・もし管理者権限とか付けるならWordPressみたいにする？

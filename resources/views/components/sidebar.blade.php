@@ -24,14 +24,6 @@
           アカウント情報
         </a>
       </li>
-      <li class="nav-item mt-3">
-        <form action="{{ route('logout') }}" method="post" class="p-2">
-          @csrf
-          <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-            <i class="bi bi-box-arrow-right me-1"></i>ログアウト
-          </button>
-        </form>
-      </li>
       <!-- 管理者用 -->
       @if(Auth::user()->role === 'admin')
       <li class="nav-item">
@@ -41,6 +33,14 @@
         </a>
       </li>
       @endif
+      <li class="nav-item mt-3">
+        <form action="{{ route('logout') }}" method="post" class="p-2">
+          @csrf
+          <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-box-arrow-right me-1"></i>ログアウト
+          </button>
+        </form>
+      </li>
     </ul>
   </div>
 </div>
