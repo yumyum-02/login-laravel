@@ -13,12 +13,6 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin">
-          <i class="bi bi-people-fill"></i>
-          ユーザー一覧
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="/chat">
           <i class="bi bi-chat-text-fill"></i>
           掲示板
@@ -38,6 +32,15 @@
           </button>
         </form>
       </li>
+      <!-- 管理者用 -->
+      @if(Auth::user()->role === 'admin')
+      <li class="nav-item">
+        <a class="nav-link" href="/admin">
+          <i class="bi bi-people-fill"></i>
+          ユーザー一覧
+        </a>
+      </li>
+      @endif
     </ul>
   </div>
 </div>
