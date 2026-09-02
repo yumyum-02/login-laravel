@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EditUsernameController;
 use App\Http\Controllers\EditEmailController;
 use App\Http\Controllers\EditPasswordController;
+use App\Http\Controllers\EditIconController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -61,3 +62,5 @@ Route::get('edit-icon' , function(){
     $user = Auth::user();
     return view('edit-icon' , ['user' => $user]);
 })->name('edit-icon')->middleware('auth');
+// アイコン変更 update
+Route::post('edit-icon' , [EditIconController::class, 'update'])->name('update-icon')->middleware('auth');

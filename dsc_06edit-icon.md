@@ -81,13 +81,6 @@ CSS と共通パーツ:
 
 ここまでの変更：https://github.com/yumyum-02/login-laravel/commit/2cc308dd398068144fb701fd34095192836ebe4e
 
-
-
-
-
-
-
-
 ### 2-3. コントローラーの作成
 
 ```bash
@@ -97,6 +90,8 @@ php artisan make:controller EditIconController
 更新処理用ルート:
 
 ```php
+use App\Http\Controllers\EditIconController;
+
 Route::post('edit-icon', [EditIconController::class, 'update'])
     ->name('update-icon')
     ->middleware('auth');
@@ -108,7 +103,7 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 
 ### 対象コミット
 
-- 変更画面・コントローラー用意: [4d17c27](https://github.com/yumyum-02/login-laravel/commit/4d17c27f24fc3f3fe8c9abd0f6fda65a356ce07d)
+- コントローラー用意: 
 
 ---
 
