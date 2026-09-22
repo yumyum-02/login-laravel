@@ -42,6 +42,13 @@
                     <i class="bi bi-pencil-fill me-2"></i>画像を変更
                   </div>
                 </div>
+
+                <!-- 非表示のアップロードフォーム -->
+                <form action="{{ route('edit-icon.upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                  @csrf
+                  <!-- id="iconPreviewContainer"をクリックすると以下type="file"によりファイル選択ダイアログを開く -->
+                  <input type="file" id="iconFile" name="icon" accept="image/png,image/jpeg" style="display:none;">
+                </form>
               </div>
 
               <!-- エラーメッセージ -->
@@ -64,12 +71,6 @@
                 </p>
               </div>
 
-              <!-- 非表示のアップロードフォーム -->
-              <form action="{{ route('upload-icon') }}" method="post" enctype="multipart/form-data" id="uploadForm">
-                @csrf
-                <!-- id="iconPreviewContainer"をクリックすると以下type="file"によりファイル選択ダイアログを開く -->
-                <input type="file" id="iconFile" name="icon" accept="image/png,image/jpeg" style="display:none;">
-              </form>
             </div>
 
             <!-- カードフッター（ボタンエリア） -->
