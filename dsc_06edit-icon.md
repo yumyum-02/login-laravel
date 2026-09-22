@@ -1,6 +1,6 @@
 # アイコン変更実装メモ
 
-アイコン変更（画面表示・更新処理）を実装した流れをまとめたもの。
+アイコン変更（画面表示・更新処理）の実装メモ。
 
 参考サイト: [Laravel 12.x 日本語ドキュメント（readouble.com）](https://readouble.com/laravel/12.x/ja)
 
@@ -8,16 +8,23 @@
 
 ## 全体の流れ
 
+同じ `POST` パスに upload と update は置けない。upload 用と確定用は **別のパス** にする。
+
 ```
-GET  /edit-icon  → クロージャ + auth              → アイコン変更フォーム表示
-POST /edit-icon  → EditIconController@update
-                     → バリデーション → DB更新 → セッション再生成 → /account へ
+GET  /edit-icon         → 画面表示（name: edit-icon）
+POST /edit-icon/upload  → upload（name: upload）
+POST /edit-icon         → update（name: update-icon）
+POST /edit-icon/reset   → reset（name: reset-icon）
+POST /edit-icon/cancel  → cancel（name: cancel-icon）
 ```
 
-| 画面 / 処理 | URL | 名前 | 備考 |
-|-------------|-----|------|------|
-| アイコン変更（表示） | `GET /edit-icon` | `edit-icon` | 元 PHP の `edit-icon` 相当 |
-| アイコン変更（更新） | `POST /edit-icon` | `update-icon` | ルート名は GET と分ける |
+| 画面 / 処理 | URL | 名前 | 元 PHP |
+|-------------|-----|------|--------|
+| アイコン変更（表示） | `GET /edit-icon` | `edit-icon` | `edit-icon.php` |
+| アップロード（一時保存） | `POST /edit-icon/upload` | `upload` | `exec_icon_upload.php` |
+| 変更を保存 | `POST /edit-icon` | `update-icon` | `exec_edit-icon.php` |
+| デフォルトに戻す | `POST /edit-icon/reset` | `reset-icon` | `exec_icon_reset.php` |
+| キャンセル | `POST /edit-icon/cancel` | `cancel-icon` | `exec_icon_cancel.php` |
 
 アカウント情報画面（`/account`）の「変更」リンクから `edit-icon` へ遷移する。
 
@@ -70,14 +77,16 @@ CSS と共通パーツ:
 <x-sidebar></x-sidebar>
 ```
 
-フォームの送信先は **更新用ルート名** にする（画面表示用の `edit-icon` ではない）。
+アップロード用フォームは一時保存のルート名 `upload`。`enctype="multipart/form-data"` と `@csrf` が必要。
 
 ```blade
-<form action="{{ route('update-icon') }}" method="post">
+<form action="{{ route('upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
   @csrf
   ...
 </form>
 ```
+
+確定は `route('update-icon')`、リセットは `route('reset-icon')`、キャンセルは `route('cancel-icon')`。
 
 ここまでの変更：https://github.com/yumyum-02/login-laravel/commit/2cc308dd398068144fb701fd34095192836ebe4e
 
@@ -87,42 +96,153 @@ CSS と共通パーツ:
 php artisan make:controller EditIconController
 ```
 
-更新処理用ルート:
-
 ```php
 use App\Http\Controllers\EditIconController;
+
+Route::post('edit-icon/upload', [EditIconController::class, 'upload'])
+    ->name('upload')
+    ->middleware('auth');
 
 Route::post('edit-icon', [EditIconController::class, 'update'])
     ->name('update-icon')
     ->middleware('auth');
 ```
 
-- URL（パス）は GET と同じ `edit-icon` でよい
-- `name` は衝突するため `update-icon` と分ける
 - 先頭で `use App\Http\Controllers\EditIconController;` を忘れない
+- Blade の `route('upload')` と `->name('upload')` を揃える
+- upload と update は別パス（同じ `POST edit-icon` には置けない）
 
 ### 対象コミット
 
-- コントローラー用意: 
+- コントローラー用意: https://github.com/yumyum-02/login-laravel/commit/b727069811fa0e6f531e9136e18507f9cfd4f0fa
 
 ---
 
 ## 3. アイコン変更処理（コントローラー）
 
-元ファイル: `public/account-edit/exec_edit-icon.php`（[yumyum-02/login](https://github.com/yumyum-02/login)）
-
 ### 3-1. 元 PHP との対応
 
-#### コントローラーに書くこと
+元システムは処理ごとに PHP ファイルが分かれていた。Laravel では `EditIconController` のメソッドに対応する。
+`src/functions/icon.php` / `icon-file.php` のファイル操作は、コントローラから [ファイルストレージ](https://readouble.com/laravel/12.x/ja/filesystem.html) を使う。
+
+| 元 PHP | 役割 | Laravel |
+|--------|------|---------|
+| `edit-icon.php` | 画面表示 | `edit` |
+| `exec_icon_upload.php` | 選択画像を一時保存してプレビュー | `upload` |
+| `exec_icon_reset.php` | デフォルトに戻す | `reset` |
+| `exec_icon_cancel.php` | 一時ファイルを捨ててアカウントへ戻る | `cancel` |
+| `exec_edit-icon.php` | 一時ファイルを本番にして DB 更新 | `update` |
+
+注意: PHP の `$_FILES['icon']['tmp_name']`（アップロード直後の OS 側の一時ファイル）と、元システムが作る `{id}_temp.jpg`（プレビュー用に自分で保存したファイル）は別物。Laravel では前者は `$request->file('icon')`、後者のファイル名は `session('temp_icon')` で覚える。
+
+#### upload（`exec_icon_upload.php`）
+
+元の流れ:
+
+1. アップされたファイルを取得（`$_FILES['icon']`）
+2. `getIconValidationErrors` でチェック
+   - 画像がアップロードされているか
+   - アップロードされたファイルが本当に画像か
+   - 画像のアップロードに成功したか
+   - ファイルサイズが 1MB 以下か
+   - MIME タイプが PNG または JPEG か
+   - 幅と高さが 400px × 400px 以下か
+3. エラーがあればアイコン編集画面に戻る（Laravelは自動）
+4. 問題なければ `saveTempIcon` で `{id}_temp.拡張子` として保存
+5. `$_SESSION['temp_icon']` にそのファイル名を保存
+6. アイコン編集画面へリダイレクト（プレビュー表示）
+7. 一時保存に失敗したら「ファイルの保存に失敗しました」
 
 | 元 PHP | Laravel |
 |--------|---------|
-| `getCurrenticonErrors` | `current_icon` ルール |
-| `geticonValidationErrors` | `required` / `regex` / `min` / `max` / `icon::...` |
-| `geticonCheck` | `new_icon_confirmation` に `required` + `same:new_icon` |
-| `icon_hash` + `updateUser` | `$request->user()->update(['icon' => ...])`（モデルの `hashed` キャストでハッシュ化） |
-| `session_regenerate_id(true)` | `$request->session()->regenerate()` |
+| `$_FILES['icon']` | `$request->file('icon')` |
+| 画像がアップロードされているか | `required` |
+| 本当に画像か / MIME（PNG, JPEG） | `image` + `mimes:jpeg,png` |
+| アップロード成功か（`error !== UPLOAD_ERR_OK`） | 失敗時は Laravel がエラーにするので自前チェックは不要 |
+| 1MB 以下 | `max:1024`（単位はキロバイト） |
+| 400px × 400px 以下 | `dimensions:max_width=400,max_height=400` |
+| エラー時 `redirectWithErrors` | `validate` 失敗で自動的に元の画面へ戻る |
+| `saveTempIcon`（`icon.php`） | 古い `{id}_temp.*` を消してから `storeAs('icons', '{id}_temp.{拡張子}')`。ブラウザから見える場所に置く |
+| `$_SESSION['temp_icon']` | `$request->session()->put('temp_icon', $path)`（`$path` には `icons/` も入る） |
+| `redirect('./edit-icon.php')` | `redirect()->route('edit-icon')` |
+| 「ファイルの保存に失敗しました」 | `back()->withErrors([...])`（画面の `$errors` に載る） |
+| 戻った画面で仮画像を表示 | セッションに `temp_icon` があればそのパス、なければ DB のアイコン |
+
+参考:
+
+- [バリデーション — ファイル](https://readouble.com/laravel/12.x/ja/validation.html#validating-files)
+- [dimensions](https://readouble.com/laravel/12.x/ja/validation.html#rule-dimensions)
+- バリデーションエラー表示 https://readouble.com/laravel/12.x/ja/validation.html#quick-displaying-the-validation-errors
+バリデーションエラーの場合は自動で元の画面に戻すので明示不要
+- ファイルのアップロード（ファイル名の指定,ファイルパスと拡張子） https://readouble.com/laravel/12.x/ja/filesystem.html#file-uploads
+
+#### reset（`exec_icon_reset.php`）
+
+元の流れ:
+
+1. プレビュー用ファイル（`{id}_temp.jpg` など）を削除（`deleteTempIconFile` / `deleteAllIconFiles`）
+2. 本番アイコンを削除し、DB の `icon` を `NULL` にする（`resetIcon`）
+3. `$_SESSION['user']['icon']` を更新し、`temp_icon` を消す
+4. 成功したらアカウント情報画面へ
+5. 失敗したらアイコン編集画面へ「アイコンのリセットに失敗しました」
+
+| 元 PHP | Laravel |
+|--------|---------|
+| `deleteTempIconFile` / `deleteAllIconFiles` | `Storage::delete(...)` で一時・本番ファイルを消す |
+| `resetIcon`（ファイル削除 + DB を NULL） | ファイル削除のあと `$request->user()->update(['icon' => null])` |
+| `$_SESSION['user']['icon'] = null` | 不要。次回リクエストで DB から読み直す |
+| `unset($_SESSION['temp_icon'])` | `$request->session()->forget('temp_icon')` |
 | `redirect('../admin/account.php')` | `redirect()->route('account')` |
+| 「アイコンのリセットに失敗しました」 | `back()->withErrors([...])` |
+
+参考:
+
+- [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
+- [セッション — データの削除](https://readouble.com/laravel/12.x/ja/session.html#deleting-data)
+- [リダイレクト](https://readouble.com/laravel/12.x/ja/responses.html#redirects)
+
+#### cancel（`exec_icon_cancel.php`）
+
+元の流れ:
+
+1. セッションに一時ファイル名があれば、そのファイルを削除
+2. セッションの一時ファイル名を削除
+3. `/account` へリダイレクト（本番のアイコンは変えない）
+
+| 元 PHP | Laravel |
+|--------|---------|
+| `!empty($_SESSION['temp_icon'])` なら `deleteTempIconFile` | セッションに `temp_icon` があれば `Storage::delete(...)` |
+| `unset($_SESSION['temp_icon'])` | `$request->session()->forget('temp_icon')` |
+| `redirect('../admin/account.php')` | `redirect()->route('account')` |
+
+#### update（`exec_edit-icon.php`）
+
+元の流れ:
+
+1. セッションに一時ファイル名（`temp_icon`）があるかチェック
+2. なければアイコン編集画面へ「画像がアップロードされていません」
+3. あれば `confirmIcon` で一時ファイルを本番ファイルに変換（例: `123_temp.jpg` → `123.jpg`）
+4. DB の `icon` をファイル名で更新
+5. セッションのユーザー情報を更新し、`temp_icon` を消す
+6. `/account` へリダイレクト
+7. 失敗したらアイコン編集画面へ「アイコンの更新に失敗しました」
+
+| 元 PHP | Laravel |
+|--------|---------|
+| `empty($_SESSION['temp_icon'])` | `!$request->session()->has('temp_icon')` |
+| 「画像がアップロードされていません」 | `back()->withErrors([...])` |
+| `confirmIcon`（リネームして本番化） | `Storage` で一時ファイルを本番パスへ移動 |
+| `updateUserIcon` | `$request->user()->update(['icon' => $filename])` |
+| `$_SESSION['user']['icon'] = $filename` | 不要。DB が正になる |
+| `unset($_SESSION['temp_icon'])` | `$request->session()->forget('temp_icon')` |
+| `redirect('../admin/account.php')` | `redirect()->route('account')` |
+| 「アイコンの更新に失敗しました」 | `back()->withErrors([...])` |
+
+参考:
+
+- [セッション — データの取得](https://readouble.com/laravel/12.x/ja/session.html#retrieving-data)
+- [認証済みユーザーの取得](https://readouble.com/laravel/12.x/ja/authentication.html#retrieving-the-authenticated-user)
+- [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
 
 #### コントローラーに書かなくてよいこと
 
@@ -134,125 +254,71 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 
 ---
 
-### 3-2. バリデーション
+### 3-2. バリデーション（upload で使う）
+
+元 PHP の `getIconValidationErrors` は `upload` メソッドの `$request->validate()` にまとめる。パスワード変更のような「現在のアイコン」「確認用」欄はない。
 
 参考:
 
 - [バリデーション](https://readouble.com/laravel/12.x/ja/validation.html)
-- [current_icon](https://readouble.com/laravel/12.x/ja/validation.html#rule-current-icon)
-- [same](https://readouble.com/laravel/12.x/ja/validation.html#rule-same)
-- [icon ルールオブジェクト](https://readouble.com/laravel/12.x/ja/validation.html#validating-icons)
-
-#### 現在のアイコン
-
-元 PHP の `icon_verify` 相当。`authentication.html#icon-confirmation`（別画面での再入力）とは別物。
+- [バリデーション — ファイル](https://readouble.com/laravel/12.x/ja/validation.html#validating-files)
+- [mimes](https://readouble.com/laravel/12.x/ja/validation.html#rule-mimes)
+- [max](https://readouble.com/laravel/12.x/ja/validation.html#rule-max)
+- [dimensions](https://readouble.com/laravel/12.x/ja/validation.html#rule-dimensions)
+- [エラーメッセージのカスタマイズ](https://readouble.com/laravel/12.x/ja/validation.html#customizing-the-error-messages)
 
 ```php
-'current_icon' => ['required', 'current_icon'],
+$validated = $request->validate(
+    [
+        'icon' => [
+            'required',
+            'image',
+            'mimes:jpeg,png',
+            'max:1024',
+            'dimensions:max_width=400,max_height=400',
+        ],
+    ],
+    [
+        'icon.required' => '画像がアップロードされていません',
+        'icon.mimes' => 'PNG または JPEG 形式の画像をアップロードしてください',
+        'icon.max' => '容量は1MB以下の画像をアップロードしてください',
+        'icon.dimensions' => '画像サイズは400px × 400px以下にしてください',
+    ]
+);
 ```
 
-#### 新しいアイコン
-
-元 PHP のルール:
-
-- 必須
-- 使える文字: 半角英数字と記号 `!@#$%^&*()-_+=`
-- 8文字以上 64文字以内
-- 確認用と一致
-
-Laravel 版では、上に加えて会員登録と同じ強さ（`icon::min(8)->letters()->mixedCase()->numbers()->symbols()`）も付ける。
-
-確認用は **確認欄側** にルールを付けて、エラーも確認欄の下に出す。
-
-```php
-'new_icon' => [
-    'bail',
-    'required',
-    'regex:/^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/',
-    'min:8',
-    'max:64',
-    icon::min(8)
-        ->letters()
-        ->mixedCase()
-        ->numbers()
-        ->symbols(),
-],
-'new_icon_confirmation' => ['required', 'same:new_icon'],
-```
-
-- `required` … 確認欄が空ならエラー（確認欄に表示）
-- `same:new_icon` … 新しいアイコンと一致しなければエラー（確認欄に表示）
-
-`confirmed` だとエラーが `new_icon` 側に付くため、今回は使わない。
+- `max:1024` の単位はキロバイト（1MB = 1024KB）
+- 入力チェックに失敗すると、Laravel が自動でアイコン編集画面へ戻す
+- メッセージのキーはルール名と揃える。ルールが `mimes` なら `icon.mimes`。`icon.mimetypes` だとカスタム文は出ない
 
 ---
 
-### 3-3. DB 更新・セッション再生成・リダイレクト
+### 3-3. ファイル保存・DB 更新・セッション
 
-参考:
+元 PHP の `saveTempIcon` / `confirmIcon` / `resetIcon` は [ファイルストレージ](https://readouble.com/laravel/12.x/ja/filesystem.html) と Eloquent の更新に置き換える。
 
-- [認証済みユーザーの取得](https://readouble.com/laravel/12.x/ja/authentication.html#retrieving-the-authenticated-user)
-- [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
-- [認証 — ログイン（session regenerate）](https://readouble.com/laravel/12.x/ja/authentication.html#authenticating-users)
+| やりたいこと | Laravel |
+|--------------|---------|
+| プレビュー用に保存 | `Storage` で `{id}_temp.拡張子` を保存し、ファイル名を `session('temp_icon')` に入れる |
+| 本番として確定 | 一時ファイルを `{id}.拡張子` に移し、`$request->user()->update(['icon' => $filename])` |
+| デフォルトに戻す | ファイルを消し、`icon` を `null` にする |
+| キャンセル | 一時ファイルと `temp_icon` だけ消す（DB は触らない） |
 
-```php
-$request->user()->update([
-    'icon' => $validated['new_icon'],
-]);
-
-$request->session()->regenerate();
-
-return redirect()->route('account');
-```
-
-注意:
-
-- User モデルに `'icon' => 'hashed'` があるため、**`Hash::make` は書かない**（二重ハッシュになる）
-- `$request->user()` … ログイン中ユーザー
-- `$validated['new_icon']` … チェック済みの新しいアイコン
+`$_SESSION['user']['icon']` の手更新と `session_regenerate` はアイコン変更では不要。ログイン中ユーザーは `$request->user()` で取り、次回表示は DB の `icon` を見る。
 
 ---
 
-### 3-4. エラー表示と日本語メッセージ
+### 3-4. エラー表示
 
-#### Blade
-
-各欄のエラーを `@error` で出す。
+参考: [エラー表示（@error）](https://readouble.com/laravel/12.x/ja/validation.html#the-at-error-directive)
 
 ```blade
-<input type="icon"
-       class="form-control @error('current_icon') is-invalid @enderror"
-       name="current_icon">
-
-@error('current_icon')
-  <div class="invalid-feedback d-block">
-    @foreach ($errors->get('current_icon') as $error)
-      <div>{{ $error }}</div>
-    @endforeach
-  </div>
+@error('icon')
+  <div class="text-danger">{{ $message }}</div>
 @enderror
 ```
 
-`new_icon` / `new_icon_confirmation` も同様。
-
-#### コントローラー（メッセージの日本語化）
-
-参考: [エラーメッセージのカスタマイズ](https://readouble.com/laravel/12.x/ja/validation.html#customizing-the-error-messages)
-
-```php
-[
-    'current_icon.required' => '現在のアイコンを入力してください。',
-    'current_icon.current_icon' => '現在のアイコンが正しくありません。',
-    'new_icon.required' => 'アイコンを入力してください。',
-    'new_icon.regex' => 'アイコンは半角英数字と記号で入力してください。',
-    'new_icon.min' => 'アイコンは8文字以上64文字以内で入力してください。',
-    'new_icon.max' => 'アイコンは8文字以上64文字以内で入力してください。',
-    'new_icon_confirmation.required' => 'アイコン（確認用）を入力してください。',
-    'new_icon_confirmation.same' => 'アイコンが一致していません。',
-]
-```
-
-完成形のメソッド全体は `app/Http/Controllers/EditIconController.php` の `update` を参照。
+「画像がアップロードされていません」「アイコンの更新に失敗しました」など、`validate` 以外のメッセージは `back()->withErrors(['icon' => '...'])` で渡し、同じ `@error('icon')` で出せる。
 
 ---
 
@@ -262,25 +328,21 @@ return redirect()->route('account');
 
 ### 正常系
 
-- [ ] 正しい現在アイコン + 条件を満たす新しいアイコン（確認一致）→ account へ移動
-- [ ] 変更後、新しいアイコンでログインできる
-- [ ] 変更後、古いアイコンではログインできない
-- [ ] キャンセル → 更新せず account へ
+- [ ] PNG/JPEG・1MB以下・400px以下を選ぶ → プレビューにその画像が出る
+- [ ] プレビュー後「変更を保存」→ account へ。ヘッダーとアカウント情報のアイコンが変わる
+- [ ] 「キャンセル」→ 本番アイコンは変わらず account へ。一時ファイルは残らない
+- [ ] 「デフォルトに戻す」→ account へ。デフォルトアイコンになる
 
 ### 異常系
 
-- [ ] 現在アイコンが空 → 「現在のアイコンを入力してください。」
-- [ ] 現在アイコンが違う → 「現在のアイコンが正しくありません。」
-- [ ] 新しいアイコンが空 → 「アイコンを入力してください。」
-- [ ] 使えない文字のみ → 「アイコンは半角英数字と記号で入力してください。」
-- [ ] 7文字以下 → 「アイコンは8文字以上64文字以内で入力してください。」
-- [ ] 確認用が空 → 確認欄に「アイコン（確認用）を入力してください。」
-- [ ] 確認用と不一致 → 確認欄に「アイコンが一致していません。」
-- [ ] 英字のみなど（icon ルール未充足）→ 強さに関するエラー
+- [ ] ファイルを選ばずに保存 → 「画像がアップロードされていません」
+- [ ] PNG/JPEG 以外 → 「PNG または JPEG 形式の画像をアップロードしてください」
+- [ ] 1MB 超 → 「容量は1MB以下の画像をアップロードしてください」
+- [ ] 401px 以上 → 「画像サイズは400px × 400px以下にしてください」
 
 ### セキュリティ・画面
 
 - [ ] ログアウト後に `/edit-icon` → ログイン画面へ
-- [ ] ログアウト後に POST のみ → ログイン画面へ（`update` は動かない）
-- [ ] `@csrf` がある（無いと 419）
-- [ ] 確認欄の name が `new_icon_confirmation`
+- [ ] ログアウト後に POST のみ → ログイン画面へ
+- [ ] 各フォームに `@csrf` がある（無いと 419）
+- [ ] アップロード用フォームに `enctype="multipart/form-data"` がある

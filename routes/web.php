@@ -62,5 +62,5 @@ Route::get('edit-icon' , function(){
     $user = Auth::user();
     return view('edit-icon' , ['user' => $user]);
 })->name('edit-icon')->middleware('auth');
-// アイコン変更 update
-Route::post('edit-icon' , [EditIconController::class, 'update'])->name('update-icon')->middleware('auth');
+// アイコンアップロード
+Route::post('edit-icon' , [EditIconController::class, 'upload-icon'])->name('upload-icon')->middleware('auth');

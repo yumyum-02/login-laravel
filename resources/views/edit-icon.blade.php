@@ -45,6 +45,15 @@
               </div>
 
               <!-- エラーメッセージ -->
+              @if ($errors->any())
+                  <div class="invalid-feedback d-block text-center">
+                      <ul>
+                          @foreach ($errors->all() as $error)
+                              <li>{{ $error }}</li>
+                          @endforeach
+                      </ul>
+                  </div>
+              @endif
 
 
               <!-- 注意書き -->
@@ -56,7 +65,8 @@
               </div>
 
               <!-- 非表示のアップロードフォーム -->
-              <form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+              <form action="{{ route('upload-icon') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                @csrf
                 <!-- id="iconPreviewContainer"をクリックすると以下type="file"によりファイル選択ダイアログを開く -->
                 <input type="file" id="iconFile" name="icon" accept="image/png,image/jpeg" style="display:none;">
               </form>
