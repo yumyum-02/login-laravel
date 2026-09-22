@@ -56,7 +56,19 @@ class EditIconController extends Controller
     public function reset(Request $request): RedirectResponse
     {
         // exec_icon_reset.php 相当
-        // 画像を消して DB の icon を空に → アカウント画面へ
+        // 仮アイコンや本番アイコンを消してデフォルトに戻す → アカウント画面へ
+        if ($request->user()->icon) {
+            Storage::disk('local')->delete($request->user()->icon);
+            $request->user()->update([
+                'icon' => null,
+            ]);
+        }
+        if ($request->session()->has('temp_icon')) {
+            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+            $request->session()->forget('temp_icon');
+        }
+
+        return redirect('edit-icon');
     }
 
     public function cancel(Request $request): RedirectResponse

@@ -39,7 +39,7 @@
                 @if (session('temp_icon'))
                   <img src="{{ asset('storage/' . session('temp_icon')) }}" alt="一時保存のアイコン" class="icon-preview" id="iconPreview">
                 @elseif ($user->icon)
-                  <img src="{{ asset('image/icon/' . $user->icon) }}" alt="現在のアイコン" class="icon-preview" id="iconPreview">
+                <img src="{{ Storage::disk('local')->temporaryUrl($user->icon, now()->addMinutes(5)) }}" alt="現在のアイコン" class="icon-preview" id="iconPreview">
                 @else
                   <img src="{{ asset('images/icon/default-icon.png') }}" alt="デフォルトアイコン" class="icon-preview" id="iconPreview">
                 @endif
@@ -84,7 +84,7 @@
               <div class="d-flex justify-content-between gap-2">
                 <div>
                   <!-- デフォルトに戻すボタン -->
-                  <form action="./exec_icon_reset.php" method="post" style="display: inline;">
+                  <form action="{{ route('edit-icon.reset') }}" method="post" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning">
                       <i class="bi bi-arrow-counterclockwise me-2"></i>デフォルトに戻す
