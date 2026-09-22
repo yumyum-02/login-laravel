@@ -101,7 +101,7 @@
                   </form>
 
                   <!-- 変更を保存ボタン -->
-                  <form action="./exec_edit-icon.php" method="post" style="display: inline;">
+                  <form action="{{ route('edit-icon.update') }}" method="post" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-primary btn-save">
                       <i class="bi bi-check-lg me-2"></i>変更を保存
