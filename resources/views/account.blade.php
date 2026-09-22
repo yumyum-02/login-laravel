@@ -61,7 +61,11 @@
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" width="80" height="80">
+                  @if ($user->icon)
+                    <img src="{{ asset('storage/' . $user->icon) }}" alt="アイコン" width="80" height="80" class="rounded-circle">
+                  @else
+                    <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" width="80" height="80" class="rounded-circle">
+                  @endif
                 </div>
                 <div class="col-sm-3 text-end">
                   <a href="{{ route('edit-icon') }}" class="btn btn-outline-secondary btn-sm">
