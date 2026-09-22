@@ -89,5 +89,27 @@ class EditIconController extends Controller
     {
         // exec_edit-icon.php 相当
         // 一時ファイルを本番にして DB を更新 → アカウント画面へ
+        if (!$request->session()->has('temp_icon')) {
+            return redirect('edit-icon')->withErrors(['画像がアップロードされていません']);
+        }
+
+        $tempPath = $request->session()->get('temp_icon');
+        // 本番アイコンは{id}_{日時}.拡張子にする
+        $finalPath = 'icons/'.$request->user()->id.'_'.now()->format('YmdHis').'.'.pathinfo($tempPath, PATHINFO_EXTENSION);
+        // 仮を本番名へ移す。古い本番ファイルは削除しない
+        $moved = Storage::disk('public')->move($tempPath, $finalPath);
+
+        // 移動に失敗した場合はエラー
+        if (! $moved) {
+            return redirect('edit-icon')->withErrors(['アイコンの更新に失敗しました']);
+        }
+
+        // DB を更新
+        $request->user()->update(['icon' => $finalPath]);
+        // 仮を消す
+        $request->session()->forget('temp_icon');
+
+        // アカウント画面へ
+        return redirect('account');
     }
 }

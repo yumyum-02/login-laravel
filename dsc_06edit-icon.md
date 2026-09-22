@@ -56,3 +56,16 @@ Laravel 13 での実装。参考: [Laravel 13.x 日本語ドキュメント](htt
 - ルート: `routes/web.php` の POST `edit-icon/reset`
 - コントローラー: `EditIconController.php` の `reset`。本番があればファイルを消して DB を空にする。仮があればファイルとセッションを消す。編集画面へ戻る
 - Blade: `edit-icon.blade.php` のデフォルトに戻すボタン。戻ったあとはデフォルト画像
+
+---
+
+## 変更を保存
+
+仮が無ければ「画像がアップロードされていません」で編集画面へ戻る。
+あれば仮を `{id}_{日時}.拡張子` に移し、DB にそのパスを入れてアカウント画面へ戻る。
+移せなければ DB は更新せず「アイコンの更新に失敗しました」で編集画面へ戻る。
+古い本番ファイルは消さない。
+
+- ルート: `routes/web.php` の POST `edit-icon/update`
+- コントローラー: `EditIconController.php` の `update`
+- Blade: `edit-icon.blade.php` の変更を保存ボタン
