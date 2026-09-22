@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-//アップロード用
-use Illuminate\Validation\Rules\File;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class EditIconController extends Controller
 {
@@ -18,6 +16,7 @@ class EditIconController extends Controller
 
     public function upload(Request $request): RedirectResponse
     {
+        // バリデーション
         $validated = $request->validate(
             [
                 'icon' => [
@@ -35,12 +34,19 @@ class EditIconController extends Controller
             ]
         );
 
-        // アイコンを保存{id}_temp.拡張子
+        // 前の仮アイコンがあれば消す
+        if ($request->session()->has('temp_icon')) {
+            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+        }
+
+        // アイコンの一時保存{id}_temp.拡張子
         $path = $request->file('icon')->storeAs(
-            'icons', $request->user()->id.'_temp.'.$request->file('icon')->extension()
+            'icons',
+            $request->user()->id.'_temp.'.$request->file('icon')->extension(),
+            'public'
         );
 
-        //　セッションに保存
+        //　セッションに一時保存したアイコンのパスを保存
         $request->session()->put('temp_icon', $path);
 
         //　編集画面へリダイレクト

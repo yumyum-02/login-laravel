@@ -2,7 +2,7 @@
 
 アイコン変更（画面表示・更新処理）の実装メモ。
 
-参考サイト: [Laravel 12.x 日本語ドキュメント（readouble.com）](https://readouble.com/laravel/12.x/ja)
+参考サイト: [Laravel 13.x 日本語ドキュメント（readouble.com）](https://readouble.com/laravel/13.x/ja)
 
 ---
 
@@ -12,7 +12,7 @@
 
 ```
 GET  /edit-icon         → 画面表示（name: edit-icon）
-POST /edit-icon/upload  → upload（name: upload）
+POST /edit-icon/upload  → upload（name: edit-icon.upload）
 POST /edit-icon         → update（name: update-icon）
 POST /edit-icon/reset   → reset（name: reset-icon）
 POST /edit-icon/cancel  → cancel（name: cancel-icon）
@@ -21,7 +21,7 @@ POST /edit-icon/cancel  → cancel（name: cancel-icon）
 | 画面 / 処理 | URL | 名前 | 元 PHP |
 |-------------|-----|------|--------|
 | アイコン変更（表示） | `GET /edit-icon` | `edit-icon` | `edit-icon.php` |
-| アップロード（一時保存） | `POST /edit-icon/upload` | `upload` | `exec_icon_upload.php` |
+| アップロード（一時保存） | `POST /edit-icon/upload` | `edit-icon.upload` | `exec_icon_upload.php` |
 | 変更を保存 | `POST /edit-icon` | `update-icon` | `exec_edit-icon.php` |
 | デフォルトに戻す | `POST /edit-icon/reset` | `reset-icon` | `exec_icon_reset.php` |
 | キャンセル | `POST /edit-icon/cancel` | `cancel-icon` | `exec_icon_cancel.php` |
@@ -77,13 +77,25 @@ CSS と共通パーツ:
 <x-sidebar></x-sidebar>
 ```
 
-アップロード用フォームは一時保存のルート名 `upload`。`enctype="multipart/form-data"` と `@csrf` が必要。
+アップロード用フォームは一時保存のルート名 `edit-icon.upload`。`enctype="multipart/form-data"` と `@csrf` が必要。画像をクリックすると JS がこのフォームを送る。
 
 ```blade
-<form action="{{ route('upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+<form action="{{ route('edit-icon.upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
   @csrf
-  ...
+  <input type="file" id="iconFile" name="icon" accept="image/png,image/jpeg">
 </form>
+```
+
+プレビューはセッションの仮 → DB の本番 → デフォルトの順。
+
+```blade
+@if (session('temp_icon'))
+  <img src="{{ asset('storage/' . session('temp_icon')) }}" ...>
+@elseif ($user->icon)
+  <img src="{{ asset('image/icon/' . $user->icon) }}" ...>
+@else
+  <img src="{{ asset('images/icon/default-icon.png') }}" ...>
+@endif
 ```
 
 確定は `route('update-icon')`、リセットは `route('reset-icon')`、キャンセルは `route('cancel-icon')`。
@@ -100,7 +112,7 @@ php artisan make:controller EditIconController
 use App\Http\Controllers\EditIconController;
 
 Route::post('edit-icon/upload', [EditIconController::class, 'upload'])
-    ->name('upload')
+    ->name('edit-icon.upload')
     ->middleware('auth');
 
 Route::post('edit-icon', [EditIconController::class, 'update'])
@@ -109,7 +121,7 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 ```
 
 - 先頭で `use App\Http\Controllers\EditIconController;` を忘れない
-- Blade の `route('upload')` と `->name('upload')` を揃える
+- Blade の `route('edit-icon.upload')` と `->name('edit-icon.upload')` を揃える
 - upload と update は別パス（同じ `POST edit-icon` には置けない）
 
 ### 対象コミット
@@ -123,7 +135,7 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 ### 3-1. 元 PHP との対応
 
 元システムは処理ごとに PHP ファイルが分かれていた。Laravel では `EditIconController` のメソッドに対応する。
-`src/functions/icon.php` / `icon-file.php` のファイル操作は、コントローラから [ファイルストレージ](https://readouble.com/laravel/12.x/ja/filesystem.html) を使う。
+`src/functions/icon.php` / `icon-file.php` のファイル操作は、コントローラから [ファイルストレージ](https://readouble.com/laravel/13.x/ja/filesystem.html) を使う。
 
 | 元 PHP | 役割 | Laravel |
 |--------|------|---------|
@@ -148,33 +160,39 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
    - MIME タイプが PNG または JPEG か
    - 幅と高さが 400px × 400px 以下か
 3. エラーがあればアイコン編集画面に戻る（Laravelは自動）
-4. 問題なければ `saveTempIcon` で `{id}_temp.拡張子` として保存
-5. `$_SESSION['temp_icon']` にそのファイル名を保存
-6. アイコン編集画面へリダイレクト（プレビュー表示）
-7. 一時保存に失敗したら「ファイルの保存に失敗しました」
+4. 既存の仮ファイルがあれば消す（`deleteTempIconFile`）
+5. 問題なければ `saveTempIcon` で `{id}_temp.拡張子` として保存
+6. `$_SESSION['temp_icon']` にそのファイル名を保存
+7. アイコン編集画面へリダイレクト（プレビュー表示）
+8. ディスクへ書けない例外は、元は同じ画面に文。Laravel はエラー画面に任せる
 
 | 元 PHP | Laravel |
 |--------|---------|
 | `$_FILES['icon']` | `$request->file('icon')` |
 | 画像がアップロードされているか | `required` |
-| 本当に画像か / MIME（PNG, JPEG） | `image` + `mimes:jpeg,png` |
+| 本当に画像か / MIME（PNG, JPEG） | `mimes:jpeg,png`（メッセージキーは `icon.mimes`） |
 | アップロード成功か（`error !== UPLOAD_ERR_OK`） | 失敗時は Laravel がエラーにするので自前チェックは不要 |
 | 1MB 以下 | `max:1024`（単位はキロバイト） |
 | 400px × 400px 以下 | `dimensions:max_width=400,max_height=400` |
-| エラー時 `redirectWithErrors` | `validate` 失敗で自動的に元の画面へ戻る |
-| `saveTempIcon`（`icon.php`） | 古い `{id}_temp.*` を消してから `storeAs('icons', '{id}_temp.{拡張子}')`。ブラウザから見える場所に置く |
-| `$_SESSION['temp_icon']` | `$request->session()->put('temp_icon', $path)`（`$path` には `icons/` も入る） |
-| `redirect('./edit-icon.php')` | `redirect()->route('edit-icon')` |
-| 「ファイルの保存に失敗しました」 | 例外は Laravel のエラー画面に任せる |
-| 戻った画面で仮画像を表示 | セッションに `temp_icon` があればそのパス、なければ DB のアイコン |
+| エラー時 `redirectWithErrors` | `validate` 失敗で自動的に元の画面へ戻る。Blade は `$errors` |
+| `deleteTempIconFile` | `storeAs` の前に `Storage::disk('public')->delete(session の temp_icon)` |
+| `saveTempIcon` | `storeAs('icons', '{id}_temp.{拡張子}', 'public')`。実体は `storage/app/public/icons/`。`php artisan storage:link` で `public/storage` から見える |
+| `$_SESSION['temp_icon']` | `$request->session()->put('temp_icon', $path)`。`$path` は `icons/1_temp.png` のようにフォルダ付き。`redirect()->with('temp_icon')` は使わない（1回で消える） |
+| `redirect('./edit-icon.php')` | `return redirect('edit-icon')` |
+| 「ファイルの保存に失敗しました」 | 例外は Laravel のエラー画面に任せる。`if (!$path)` や `try` は書かない |
+| 戻った画面で仮画像を表示 | `session('temp_icon')` があれば `asset('storage/' . session('temp_icon'))`。なければ `$user->icon`。それも空なら `images/icon/default-icon.png` |
+
+`use Illuminate\Support\Facades\Storage;` が必要。仮ファイルは公開ディスクなので、住所が分かればログイン無しでも見える（元の `/image/icon/` と同じ）。
 
 参考:
 
-- [バリデーション — ファイル](https://readouble.com/laravel/12.x/ja/validation.html#validating-files)
-- [dimensions](https://readouble.com/laravel/12.x/ja/validation.html#rule-dimensions)
-- バリデーションエラー表示 https://readouble.com/laravel/12.x/ja/validation.html#quick-displaying-the-validation-errors
-バリデーションエラーの場合は自動で元の画面に戻すので明示不要
-- ファイルのアップロード（ファイル名の指定,ファイルパスと拡張子） https://readouble.com/laravel/12.x/ja/filesystem.html#file-uploads
+- [バリデーション — ファイル](https://readouble.com/laravel/13.x/ja/validation.html#validating-files)
+- [dimensions](https://readouble.com/laravel/13.x/ja/validation.html#rule-dimensions)
+- [エラーの表示](https://readouble.com/laravel/13.x/ja/validation.html#quick-displaying-the-validation-errors)
+- [ファイルのアップロード](https://readouble.com/laravel/13.x/ja/filesystem.html#file-uploads)
+- [公開ディスク](https://readouble.com/laravel/13.x/ja/filesystem.html#the-public-disk)
+- [ファイルの削除](https://readouble.com/laravel/13.x/ja/filesystem.html#deleting-files)
+- [セッション（データの保存）](https://readouble.com/laravel/13.x/ja/session.html#storing-data)
 
 #### reset（`exec_icon_reset.php`）
 
@@ -260,19 +278,18 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 
 参考:
 
-- [バリデーション](https://readouble.com/laravel/12.x/ja/validation.html)
-- [バリデーション — ファイル](https://readouble.com/laravel/12.x/ja/validation.html#validating-files)
-- [mimes](https://readouble.com/laravel/12.x/ja/validation.html#rule-mimes)
-- [max](https://readouble.com/laravel/12.x/ja/validation.html#rule-max)
-- [dimensions](https://readouble.com/laravel/12.x/ja/validation.html#rule-dimensions)
-- [エラーメッセージのカスタマイズ](https://readouble.com/laravel/12.x/ja/validation.html#customizing-the-error-messages)
+- [バリデーション](https://readouble.com/laravel/13.x/ja/validation.html)
+- [バリデーション — ファイル](https://readouble.com/laravel/13.x/ja/validation.html#validating-files)
+- [mimes](https://readouble.com/laravel/13.x/ja/validation.html#rule-mimes)
+- [max](https://readouble.com/laravel/13.x/ja/validation.html#rule-max)
+- [dimensions](https://readouble.com/laravel/13.x/ja/validation.html#rule-dimensions)
+- [エラーメッセージのカスタマイズ](https://readouble.com/laravel/13.x/ja/validation.html#customizing-the-error-messages)
 
 ```php
 $validated = $request->validate(
     [
         'icon' => [
             'required',
-            'image',
             'mimes:jpeg,png',
             'max:1024',
             'dimensions:max_width=400,max_height=400',
@@ -295,11 +312,11 @@ $validated = $request->validate(
 
 ### 3-3. ファイル保存・DB 更新・セッション
 
-元 PHP の `saveTempIcon` / `confirmIcon` / `resetIcon` は [ファイルストレージ](https://readouble.com/laravel/12.x/ja/filesystem.html) と Eloquent の更新に置き換える。
+元 PHP の `saveTempIcon` / `confirmIcon` / `resetIcon` は [ファイルストレージ](https://readouble.com/laravel/13.x/ja/filesystem.html) と Eloquent の更新に置き換える。
 
 | やりたいこと | Laravel |
 |--------------|---------|
-| プレビュー用に保存 | `Storage` で `{id}_temp.拡張子` を保存し、ファイル名を `session('temp_icon')` に入れる |
+| プレビュー用に保存 | 古い仮を `Storage::disk('public')->delete` してから `storeAs(..., 'public')`。パスを `session('temp_icon')` に入れる |
 | 本番として確定 | 一時ファイルを `{id}.拡張子` に移し、`$request->user()->update(['icon' => $filename])` |
 | デフォルトに戻す | ファイルを消し、`icon` を `null` にする |
 | キャンセル | 一時ファイルと `temp_icon` だけ消す（DB は触らない） |

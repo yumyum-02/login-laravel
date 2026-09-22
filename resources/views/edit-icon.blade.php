@@ -36,7 +36,13 @@
             <div class="card-body p-4">
               <!-- アイコンプレビュー -->
               <div class="icon-preview-container" id="iconPreviewContainer">
-                <img src="{{ asset('image/icon/' . $user->icon) }}" alt="アイコンプレビュー" class="icon-preview" id="iconPreview">
+                @if (session('temp_icon'))
+                  <img src="{{ asset('storage/' . session('temp_icon')) }}" alt="一時保存のアイコン" class="icon-preview" id="iconPreview">
+                @elseif ($user->icon)
+                  <img src="{{ asset('image/icon/' . $user->icon) }}" alt="現在のアイコン" class="icon-preview" id="iconPreview">
+                @else
+                  <img src="{{ asset('images/icon/default-icon.png') }}" alt="デフォルトアイコン" class="icon-preview" id="iconPreview">
+                @endif
                 <div class="icon-overlay">
                   <div class="icon-overlay-text">
                     <i class="bi bi-pencil-fill me-2"></i>画像を変更
