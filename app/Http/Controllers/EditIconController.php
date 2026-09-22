@@ -29,7 +29,7 @@ class EditIconController extends Controller
             ],
             [
                 'icon.required' => '画像がアップロードされていません',
-                'icon.mimetypes' => 'PNG または JPEG 形式の画像をアップロードしてください',
+                'icon.mimes' => 'PNG または JPEG 形式の画像をアップロードしてください',
                 'icon.max' => '容量は1MB以下の画像をアップロードしてください',
                 'icon.dimensions' => '画像サイズは400px × 400px以下にしてください',
             ]
@@ -39,11 +39,6 @@ class EditIconController extends Controller
         $path = $request->file('icon')->storeAs(
             'icons', $request->user()->id.'_temp.'.$request->file('icon')->extension()
         );
-
-        // 一時保存に失敗した場合
-        if (!$path) {
-            return redirect('edit-icon')->with('error', 'アイコンの保存に失敗しました');
-        }
 
         //　セッションに保存
         $request->session()->put('temp_icon', $path);

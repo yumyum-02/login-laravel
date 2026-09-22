@@ -165,7 +165,7 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 | `saveTempIcon`（`icon.php`） | 古い `{id}_temp.*` を消してから `storeAs('icons', '{id}_temp.{拡張子}')`。ブラウザから見える場所に置く |
 | `$_SESSION['temp_icon']` | `$request->session()->put('temp_icon', $path)`（`$path` には `icons/` も入る） |
 | `redirect('./edit-icon.php')` | `redirect()->route('edit-icon')` |
-| 「ファイルの保存に失敗しました」 | `back()->withErrors([...])`（画面の `$errors` に載る） |
+| 「ファイルの保存に失敗しました」 | 例外は Laravel のエラー画面に任せる |
 | 戻った画面で仮画像を表示 | セッションに `temp_icon` があればそのパス、なければ DB のアイコン |
 
 参考:
