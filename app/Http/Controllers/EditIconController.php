@@ -62,7 +62,15 @@ class EditIconController extends Controller
     public function cancel(Request $request): RedirectResponse
     {
         // exec_icon_cancel.php 相当
-        // 一時ファイルだけ消す（本番のアイコンは変えない）→ アカウント画面へ
+        // 一時保存したアイコンを消す（本番のアイコンは変えない）→ アカウント画面へ
+        if ($request->session()->has('temp_icon')) {
+            // 一時保存したアイコンを消す
+            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+
+            // セッションから一時保存したアイコンのパスを消す
+            $request->session()->forget('temp_icon');
+        }
+        return redirect('account');
     }
 
     public function update(Request $request): RedirectResponse

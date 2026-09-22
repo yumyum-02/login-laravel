@@ -64,3 +64,5 @@ Route::get('edit-icon' , function(){
 })->name('edit-icon')->middleware('auth');
 // アイコンアップロード
 Route::post('edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
+// アイコンキャンセル
+Route::post('edit-icon/cancel' , [EditIconController::class, 'cancel'])->name('edit-icon.cancel')->middleware('auth');

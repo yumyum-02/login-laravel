@@ -15,7 +15,7 @@ GET  /edit-icon         → 画面表示（name: edit-icon）
 POST /edit-icon/upload  → upload（name: edit-icon.upload）
 POST /edit-icon         → update（name: update-icon）
 POST /edit-icon/reset   → reset（name: reset-icon）
-POST /edit-icon/cancel  → cancel（name: cancel-icon）
+POST /edit-icon/cancel  → cancel（name: edit-icon.cancel）
 ```
 
 | 画面 / 処理 | URL | 名前 | 元 PHP |
@@ -24,7 +24,7 @@ POST /edit-icon/cancel  → cancel（name: cancel-icon）
 | アップロード（一時保存） | `POST /edit-icon/upload` | `edit-icon.upload` | `exec_icon_upload.php` |
 | 変更を保存 | `POST /edit-icon` | `update-icon` | `exec_edit-icon.php` |
 | デフォルトに戻す | `POST /edit-icon/reset` | `reset-icon` | `exec_icon_reset.php` |
-| キャンセル | `POST /edit-icon/cancel` | `cancel-icon` | `exec_icon_cancel.php` |
+| キャンセル | `POST /edit-icon/cancel` | `edit-icon.cancel` | `exec_icon_cancel.php` |
 
 アカウント情報画面（`/account`）の「変更」リンクから `edit-icon` へ遷移する。
 
@@ -98,7 +98,7 @@ CSS と共通パーツ:
 @endif
 ```
 
-確定は `route('update-icon')`、リセットは `route('reset-icon')`、キャンセルは `route('cancel-icon')`。
+確定は `route('update-icon')`、リセットは `route('reset-icon')`、キャンセルは `route('edit-icon.cancel')`。
 
 ここまでの変更：https://github.com/yumyum-02/login-laravel/commit/2cc308dd398068144fb701fd34095192836ebe4e
 
@@ -113,6 +113,10 @@ use App\Http\Controllers\EditIconController;
 
 Route::post('edit-icon/upload', [EditIconController::class, 'upload'])
     ->name('edit-icon.upload')
+    ->middleware('auth');
+
+Route::post('edit-icon/cancel', [EditIconController::class, 'cancel'])
+    ->name('edit-icon.cancel')
     ->middleware('auth');
 
 Route::post('edit-icon', [EditIconController::class, 'update'])
@@ -217,7 +221,6 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 
 - [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
 - [セッション — データの削除](https://readouble.com/laravel/12.x/ja/session.html#deleting-data)
-- [リダイレクト](https://readouble.com/laravel/12.x/ja/responses.html#redirects)
 
 #### cancel（`exec_icon_cancel.php`）
 
@@ -229,9 +232,18 @@ Route::post('edit-icon', [EditIconController::class, 'update'])
 
 | 元 PHP | Laravel |
 |--------|---------|
-| `!empty($_SESSION['temp_icon'])` なら `deleteTempIconFile` | セッションに `temp_icon` があれば `Storage::delete(...)` |
+| `requireLogin` / CSRF | ルートの `middleware('auth')` と Blade の `@csrf` |
+| `!empty($_SESSION['temp_icon'])` なら `deleteTempIconFile` | `has('temp_icon')` なら `Storage::disk('public')->delete($request->session()->get('temp_icon'))` |
 | `unset($_SESSION['temp_icon'])` | `$request->session()->forget('temp_icon')` |
-| `redirect('../admin/account.php')` | `redirect()->route('account')` |
+| `redirect('../admin/account.php')` | `return redirect('account')`。DB の `icon` は触らない |
+
+ルートは `POST edit-icon/cancel`、名前 `edit-icon.cancel`。Blade は `route('edit-icon.cancel')`。仮が無いときは何も消さずアカウントへ戻る。
+
+参考:
+
+- [ファイルの削除](https://readouble.com/laravel/13.x/ja/filesystem.html#deleting-files)
+- [セッション（データの削除）](https://readouble.com/laravel/13.x/ja/session.html#deleting-data)
+- [リダイレクト](https://readouble.com/laravel/13.x/ja/responses.html#redirects)
 
 #### update（`exec_edit-icon.php`）
 

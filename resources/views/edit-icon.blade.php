@@ -93,7 +93,7 @@
                 </div>
                 <div class="d-flex gap-2">
                   <!-- キャンセルボタン -->
-                  <form action="" method="post" style="display: inline;">
+                  <form action="{{ route('edit-icon.cancel') }}" method="post" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-outline-secondary">
                       <i class="bi bi-x-lg me-2"></i>キャンセル
