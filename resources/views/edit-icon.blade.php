@@ -37,7 +37,7 @@
               <!-- アイコンプレビュー -->
               <div class="icon-preview-container" id="iconPreviewContainer">
                 @if (session('temp_icon'))
-                  <img src="{{ asset('storage/' . session('temp_icon')) }}" alt="一時保存のアイコン" class="icon-preview" id="iconPreview">
+                  <img src="{{ Storage::disk('local')->temporaryUrl(session('temp_icon'), now()->addMinutes(5)) }}" alt="一時保存のアイコン" class="icon-preview" id="iconPreview">
                 @elseif ($user->icon)
                 <img src="{{ Storage::disk('local')->temporaryUrl($user->icon, now()->addMinutes(5)) }}" alt="現在のアイコン" class="icon-preview" id="iconPreview">
                 @else

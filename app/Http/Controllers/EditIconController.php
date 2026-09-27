@@ -36,14 +36,14 @@ class EditIconController extends Controller
 
         // 前の仮アイコンがあれば消す
         if ($request->session()->has('temp_icon')) {
-            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
         }
 
         // アイコンの一時保存{id}_temp.拡張子
         $path = $request->file('icon')->storeAs(
             'icons',
             $request->user()->id.'_temp.'.$request->file('icon')->extension(),
-            'public'
+            'local'
         );
 
         // 移動に失敗した場合はエラー
@@ -69,7 +69,7 @@ class EditIconController extends Controller
             ]);
         }
         if ($request->session()->has('temp_icon')) {
-            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
             $request->session()->forget('temp_icon');
         }
 
@@ -82,7 +82,7 @@ class EditIconController extends Controller
         // 一時保存したアイコンを消す（本番のアイコンは変えない）→ アカウント画面へ
         if ($request->session()->has('temp_icon')) {
             // 一時保存したアイコンを消す
-            Storage::disk('public')->delete($request->session()->get('temp_icon'));
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
 
             // セッションから一時保存したアイコンのパスを消す
             $request->session()->forget('temp_icon');
@@ -102,7 +102,7 @@ class EditIconController extends Controller
         // 本番アイコンは{id}_{日時}.拡張子にする
         $finalPath = 'icons/'.$request->user()->id.'_'.now()->format('YmdHis').'.'.pathinfo($tempPath, PATHINFO_EXTENSION);
         // 仮を本番名へ移す。古い本番ファイルは削除しない
-        $moved = Storage::disk('public')->move($tempPath, $finalPath);
+        $moved = Storage::disk('local')->move($tempPath, $finalPath);
 
         // 移動に失敗した場合はエラー
         if (! $moved) {

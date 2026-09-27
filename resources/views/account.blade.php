@@ -62,7 +62,7 @@
                 </div>
                 <div class="col-sm-6">
                   @if ($user->icon)
-                    <img src="{{ asset('storage/' . $user->icon) }}" alt="アイコン" width="80" height="80" class="rounded-circle">
+                    <img src="{{ Storage::disk('local')->temporaryUrl($user->icon, now()->addMinutes(5)) }}" alt="アイコン" width="80" height="80" class="rounded-circle">
                   @else
                     <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" width="80" height="80" class="rounded-circle">
                   @endif

@@ -29,7 +29,7 @@ Laravel 13 での実装。参考: [Laravel 13.x 日本語ドキュメント](htt
 
 ## アップロード（仮保存）
 
-画像をクリックすると送る。仮は公開の場所に置くので、住所が分かればログイン無しでも見える。
+画像をクリックすると送る。仮も本番も非公開ディスク（`local` = `storage/app/private`）。画面は期限つき URL で出す。
 
 - ルート: `routes/web.php` の POST `edit-icon/upload`
 - コントローラー: `EditIconController.php` の `upload`。画像をチェックする。前の仮があれば消す。新しい仮を保存し、パスをセッションに残して編集画面へ戻る
