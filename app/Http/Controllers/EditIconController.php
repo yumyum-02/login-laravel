@@ -46,6 +46,11 @@ class EditIconController extends Controller
             'public'
         );
 
+        // 移動に失敗した場合はエラー
+        if (! $path) {
+            return redirect('edit-icon')->withErrors(['アイコンのアップロードに失敗しました']);
+        }
+
         //　セッションに一時保存したアイコンのパスを保存
         $request->session()->put('temp_icon', $path);
 
