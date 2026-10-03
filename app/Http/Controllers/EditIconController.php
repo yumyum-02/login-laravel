@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+
+class EditIconController extends Controller
+{
+    public function edit(Request $request): View
+    {
+        return view('edit-icon', ['user' => $request->user()]);
+    }
+
+    public function upload(Request $request): RedirectResponse
+    {
+        // バリデーション
+        $validated = $request->validate(
+            [
+                'icon' => [
+                    'required',
+                    'mimes:jpeg,png',
+                    'max:1024', // 1MB
+                    'dimensions:max_width=400,max_height=400',
+                ],
+            ],
+            [
+                'icon.required' => '画像がアップロードされていません',
+                'icon.mimes' => 'PNG または JPEG 形式の画像をアップロードしてください',
+                'icon.max' => '容量は1MB以下の画像をアップロードしてください',
+                'icon.dimensions' => '画像サイズは400px × 400px以下にしてください',
+            ]
+        );
+
+        // 前の仮アイコンがあれば消す
+        if ($request->session()->has('temp_icon')) {
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
+        }
+
+        // アイコンの一時保存{id}_temp.拡張子
+        $path = $request->file('icon')->storeAs(
+            'icons',
+            $request->user()->id.'_temp.'.$request->file('icon')->extension(),
+            'local'
+        );
+
+        // 移動に失敗した場合はエラー
+        if (! $path) {
+            return redirect('edit-icon')->withErrors(['アイコンのアップロードに失敗しました']);
+        }
+
+        //　セッションに一時保存したアイコンのパスを保存
+        $request->session()->put('temp_icon', $path);
+
+        //　編集画面へリダイレクト
+        return redirect('edit-icon');
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        // exec_icon_reset.php 相当
+        // 仮アイコンや本番アイコンを消してデフォルトに戻す → アカウント画面へ
+        if ($request->user()->icon) {
+            Storage::disk('local')->delete($request->user()->icon);
+            $request->user()->update([
+                'icon' => null,
+            ]);
+        }
+        if ($request->session()->has('temp_icon')) {
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
+            $request->session()->forget('temp_icon');
+        }
+
+        return redirect('edit-icon');
+    }
+
+    public function cancel(Request $request): RedirectResponse
+    {
+        // exec_icon_cancel.php 相当
+        // 一時保存したアイコンを消す（本番のアイコンは変えない）→ アカウント画面へ
+        if ($request->session()->has('temp_icon')) {
+            // 一時保存したアイコンを消す
+            Storage::disk('local')->delete($request->session()->get('temp_icon'));
+
+            // セッションから一時保存したアイコンのパスを消す
+            $request->session()->forget('temp_icon');
+        }
+        return redirect('account');
+    }
+
+    public function update(Request $request): RedirectResponse
+    {
+        // exec_edit-icon.php 相当
+        // 一時ファイルを本番にして DB を更新 → アカウント画面へ
+        if (!$request->session()->has('temp_icon')) {
+            return redirect('edit-icon')->withErrors(['画像がアップロードされていません']);
+        }
+
+        $tempPath = $request->session()->get('temp_icon');
+        // 本番アイコンは{id}_{日時}.拡張子にする
+        $finalPath = 'icons/'.$request->user()->id.'_'.now()->format('YmdHis').'.'.pathinfo($tempPath, PATHINFO_EXTENSION);
+        // 仮を本番名へ移す。古い本番ファイルは削除しない
+        $moved = Storage::disk('local')->move($tempPath, $finalPath);
+
+        // 移動に失敗した場合はエラー
+        if (! $moved) {
+            return redirect('edit-icon')->withErrors(['アイコンの更新に失敗しました']);
+        }
+
+        // DB を更新
+        $request->user()->update(['icon' => $finalPath]);
+        // 仮を消す
+        $request->session()->forget('temp_icon');
+
+        // アカウント画面へ
+        return redirect('account');
+    }
+}

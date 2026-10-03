@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EditUsernameController;
 use App\Http\Controllers\EditEmailController;
 use App\Http\Controllers\EditPasswordController;
+use App\Http\Controllers\EditIconController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -55,3 +56,17 @@ Route::get('edit-password' , function(){
 })->name('edit-password')->middleware('auth');
 // パスワード変更 update
 Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');
+
+// アイコン変更画面表示
+Route::get('edit-icon' , function(){
+    $user = Auth::user();
+    return view('edit-icon' , ['user' => $user]);
+})->name('edit-icon')->middleware('auth');
+// アイコンアップロード
+Route::post('edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
+// アイコンキャンセル
+Route::post('edit-icon/cancel' , [EditIconController::class, 'cancel'])->name('edit-icon.cancel')->middleware('auth');
+// アイコンリセット
+Route::post('edit-icon/reset' , [EditIconController::class, 'reset'])->name('edit-icon.reset')->middleware('auth');
+// アイコン更新
+Route::post('edit-icon/update' , [EditIconController::class, 'update'])->name('edit-icon.update')->middleware('auth');
