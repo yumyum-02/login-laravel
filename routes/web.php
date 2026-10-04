@@ -19,8 +19,8 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth');
 
 // 会員登録画面表示
-Route::get('/regist', [RegisterController::class, 'create']);
-Route::post('/regist', [RegisterController::class, 'store']);
+Route::get('/regist', [RegisterController::class, 'create'])->name('register.create');
+Route::post('/regist', [RegisterController::class, 'store'])->name('register.store');
 
 // ダッシュボード画面表示
 Route::get('/dashboard', function() {
