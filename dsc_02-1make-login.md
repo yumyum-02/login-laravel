@@ -12,7 +12,7 @@
 
 ```
 GET  /          → LoginController@create  → ログインフォーム表示
-POST /          → LoginController@store   → バリデーション → Auth::attempt → /dashboard へ
+POST /          → LoginController@store   → バリデーション → Auth::attempt → セッション作り直し → /dashboard へ
 GET  /dashboard → auth ミドルウェア       → 未ログインなら login へ（メッセージ付き）
 ```
 
@@ -82,8 +82,15 @@ if (! Auth::attempt($credentials)) {
     ]);
 }
 
+// ログイン前のセッションIDを捨てる
+$request->session()->regenerate();
+
 return redirect('/dashboard');
 ```
+
+ログインに成功した直後、ダッシュボードへ移る前に `session()->regenerate()` を呼ぶ。ログイン前のセッション ID を捨て、新しい ID にする。パスワード変更（`EditPasswordController`）でも同じ呼び出しをしている。
+
+ログアウトの `regenerateToken()` とは別で、こちらはセッション ID 自体を作り直す。
 
 必要な use:
 
@@ -295,6 +302,6 @@ Route::get('/', [LoginController::class, 'create'])
 ## 次のステップ案
 
 - ~~ログアウト用ルートの接続と画面から呼ぶボタン~~ → [dsc_02-2make-logout.md](./dsc_02-2make-logout.md)
-- ログイン成功後の `$request->session()->regenerate()`（セッション固定攻撃対策）
+- ~~ログイン成功後の `$request->session()->regenerate()`（セッション固定攻撃対策）~~ → `LoginController@store` で実装済み
 - 認証済みユーザー向け `guest` + `redirectUsersTo`（任意）
 - ダッシュボードでログイン中ユーザー情報の表示（`Auth::user()`）
