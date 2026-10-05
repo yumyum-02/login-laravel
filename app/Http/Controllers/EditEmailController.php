@@ -6,9 +6,15 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class EditEmailController extends Controller
 {
+    public function edit(Request $request): View
+    {
+        return view('edit-email', ['user' => $request->user()]);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         // バリデーション
