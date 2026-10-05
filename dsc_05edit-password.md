@@ -8,6 +8,38 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["GET /account"] --> B["アカウント情報"]
+  B --> C["GET /edit-password"]
+  C --> D["EditPasswordController@edit"]
+  D --> E["変更フォーム"]
+  E --> F["キャンセル"]
+  F --> B
+  E --> G["POST /edit-password"]
+  G --> H{"入力チェック"}
+  H -->|失敗| E
+  H -->|成功| I["パスワードを更新"]
+  I --> J["セッションIDを作り直す"]
+  J --> B
+```
+
+上の図は、パスワードを変える人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["account.blade.php の変更リンク"] --> B["GET を edit に繋ぐ"]
+  B --> C["edit-password.blade.php"]
+  C --> D["EditPasswordController と POST"]
+  D --> E["update<br>保存とセッション作り直し"]
+```
+
+---
+
 ## 全体の流れ
 
 ```
@@ -63,6 +95,10 @@ public function edit(Request $request): View
     return view('edit-password', ['user' => $request->user()]);
 }
 ```
+
+### 対象コミット
+
+- GET を `edit` に移す: [c701443](https://github.com/yumyum-02/login-laravel/commit/c7014430923abc863d8759260598174eeb53754a)
 
 ### 2-2. Blade（`resources/views/edit-password.blade.php`）
 
@@ -259,6 +295,10 @@ return redirect()->route('account');
 ```
 
 完成形のメソッド全体は `app/Http/Controllers/EditPasswordController.php` の `update` を参照。
+
+### 対象コミット
+
+- バリデーション・更新・セッション作り直し: [e5d58cb](https://github.com/yumyum-02/login-laravel/commit/e5d58cbf39377fd6095bf06d5e3a4e56f045b7e7)
 
 ---
 

@@ -8,6 +8,45 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["GET /"] --> B["LoginController@create"]
+  B --> C["ログインフォーム"]
+  C --> D["POST /"]
+  D --> E{"入力チェック"}
+  E -->|失敗| C
+  E -->|成功| F["メールを小文字化"]
+  F --> G{"Auth::attempt"}
+  G -->|失敗| H["ログイン情報が正しくありません。"]
+  H --> C
+  G -->|成功| I["セッションIDを作り直す"]
+  I --> J["GET /dashboard"]
+  K["未ログインで /dashboard"] --> L["ログインしてください"]
+  L --> C
+```
+
+
+
+上の図は、ログインする人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["LoginController を作る"] --> B["create と store を書く"]
+  B --> C["web.php に接続<br>dashboard に auth"]
+  C --> D["login.blade.php を直す"]
+  D --> E["未ログインは<br>ログイン画面へ戻す"]
+```
+
+
+
+---
+
+
+
 ## 全体の流れ
 
 ```
@@ -16,13 +55,17 @@ POST /          → LoginController@store   → バリデーション → Auth::
 GET  /dashboard → auth ミドルウェア       → 未ログインなら login へ（メッセージ付き）
 ```
 
-| 画面 / 処理 | URL | コントローラー |
-|-------------|-----|----------------|
-| ログイン表示 | `GET /` | `LoginController@create`（名前: `login`） |
-| ログイン送信 | `POST /` | `LoginController@store` |
-| ダッシュボード | `GET /dashboard` | クロージャ + `auth` |
+
+| 画面 / 処理 | URL              | コントローラー                               |
+| ------- | ---------------- | ------------------------------------- |
+| ログイン表示  | `GET /`          | `LoginController@create`（名前: `login`） |
+| ログイン送信  | `POST /`         | `LoginController@store`               |
+| ダッシュボード | `GET /dashboard` | クロージャ + `auth`                        |
+
 
 ---
+
+
 
 ## 1. コントローラーの作成
 
@@ -35,6 +78,8 @@ php artisan make:controller LoginController
 対象ファイル: `app/Http/Controllers/LoginController.php`
 
 ---
+
+
 
 ## 2. ログイン処理（`LoginController`）
 
@@ -49,6 +94,8 @@ public function create(): View
 }
 ```
 
+
+
 ### 2-2. バリデーション（`store`）
 
 会員登録のうち、ログインに必要な項目だけ使う。登録時の `Password::min(8)->letters()...` はログインでは不要（すでに DB に保存済みのため）。
@@ -59,6 +106,8 @@ $validated = $request->validate([
     'password' => ['required', 'regex:/^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/', 'min:8', 'max:64'],
 ]);
 ```
+
+
 
 ### 2-3. ユーザー認証（`Auth::attempt`）
 
@@ -92,6 +141,10 @@ return redirect('/dashboard');
 
 ログアウトの `regenerateToken()` とは別で、こちらはセッション ID 自体を作り直す。
 
+### 対象コミット
+
+- ログイン成功後にセッション ID を作り直す：[bc4fb23](https://github.com/yumyum-02/login-laravel/commit/bc4fb230e9941148b44056359c7c7c9cc9a49813)
+
 必要な use:
 
 ```php
@@ -99,11 +152,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 ```
 
+
+
 #### `$credentials` について
 
 - `Auth::attempt` に渡す「メール・パスワードの配列」そのもの
 - 変数名に特別な意味はなく、配列をそのまま渡してもよい
 - `mb_strtolower` は登録時と同じく小文字化するためのもの
+
+
 
 ### 2-4. ログアウト（`destroy`）
 
@@ -121,9 +178,19 @@ public function destroy(Request $request): RedirectResponse
 }
 ```
 
+
+
+### 対象コミット
+
+- `LoginController` 作成: [5dd975d](https://github.com/yumyum-02/login-laravel/commit/5dd975d81bf6507a5012206f1d11804ad5fab512)
+
 ---
 
+
+
 ## 3. ルート（`routes/web.php`）
+
+
 
 ### 3-1. ログインをコントローラーに接続
 
@@ -135,6 +202,14 @@ use App\Http\Controllers\LoginController;
 Route::get('/', [LoginController::class, 'create'])->name('login');
 Route::post('/', [LoginController::class, 'store']);
 ```
+
+
+
+### 対象コミット
+
+- `web.php` 接続: [5dd975d](https://github.com/yumyum-02/login-laravel/commit/5dd975d81bf6507a5012206f1d11804ad5fab512)
+
+
 
 ### 3-2. ダッシュボードを保護
 
@@ -148,21 +223,31 @@ Route::get('/dashboard', function () {
 })->middleware('auth');
 ```
 
+
+
+### 対象コミット
+
+- `auth` とルート名 `login`: [649217d](https://github.com/yumyum-02/login-laravel/commit/649217d825aeeb395c1d739ffb32b190b4edef5e)
+
 ---
+
+
 
 ## 4. ログイン画面（`resources/views/auth/login.blade.php`）
 
 会員登録画面（`dsc_01make-regist.md`）と同じ考え方で Laravel 向けに直す。
 
-| 項目 | 変更内容 |
-|------|----------|
-| CSRF | 手動の hidden をやめ、`@csrf` を使う |
+
+| 項目      | 変更内容                                                    |
+| ------- | ------------------------------------------------------- |
+| CSRF    | 手動の hidden をやめ、`@csrf` を使う                              |
 | フォーム送信先 | 元の `./exec_login.php` → `{{ route('login') }}`（実体は `/`） |
-| エラー表示 | `@error('email')` / `@error('password')` と `is-invalid` |
-| 入力の再表示 | `value="{{ old('email') }}"` |
-| 成功メッセージ | 会員登録完了用 `session('message')`（緑） |
-| 注意メッセージ | 未ログイン誘導用 `session('error')`（赤） |
-| 会員登録リンク | `{{ url('/regist') }}` |
+| エラー表示   | `@error('email')` / `@error('password')` と `is-invalid` |
+| 入力の再表示  | `value="{{ old('email') }}"`                            |
+| 成功メッセージ | 会員登録完了用 `session('message')`（緑）                         |
+| 注意メッセージ | 未ログイン誘導用 `session('error')`（赤）                          |
+| 会員登録リンク | `{{ url('/regist') }}`                                  |
+
 
 ```blade
 @if (session('message'))
@@ -179,12 +264,22 @@ Route::get('/dashboard', function () {
 </form>
 ```
 
+
+
+### 対象コミット
+
+- `login.blade.php`（CSRF・`@error`・`old`）: [839dfc8](https://github.com/yumyum-02/login-laravel/commit/839dfc8dc0b81104273664abc7022671f4a514d4)
+
+
+
 ### 注意: `@error` と `session()` の違い
 
-| 書き方 | 用途 |
-|--------|------|
-| `@error('email')` | バリデーション（入力チェック）のエラー |
+
+| 書き方                      | 用途                         |
+| ------------------------ | -------------------------- |
+| `@error('email')`        | バリデーション（入力チェック）のエラー        |
 | `@if (session('error'))` | フラッシュメッセージ（「ログインしてください」など） |
+
 
 未ログイン誘導のメッセージを `@error('error')` で出そうとすると表示されない。
 
@@ -197,9 +292,19 @@ Route::get('/dashboard', function () {
 - `action="{{ route('login') }}"`（名前付きルート。GET と同じ `/`）
 - または `action="{{ url('/') }}"`
 
+
+
+### 対象コミット
+
+- フォーム `action` を `route('login')` に修正: [65c9973](https://github.com/yumyum-02/login-laravel/commit/65c9973f364c91d51d853e0a6aac94c313f9330f)
+
 ---
 
+
+
 ## 5. 未ログインユーザーの扱い（`bootstrap/app.php`）
+
+
 
 ### 5-1. ログイン画面へリダイレクト
 
@@ -245,6 +350,14 @@ Blade 側:
 @endif
 ```
 
+
+
+### 対象コミット
+
+- `redirectGuestsTo` とフラッシュメッセージ: [649217d](https://github.com/yumyum-02/login-laravel/commit/649217d825aeeb395c1d739ffb32b190b4edef5e)
+
+
+
 ### 5-3. 認証済みユーザーのリダイレクト（任意・未実装）
 
 参考: [認証済みユーザーのリダイレクト](https://readouble.com/laravel/12.x/ja/authentication.html#redirecting-authenticated-users)
@@ -265,6 +378,8 @@ Route::get('/', [LoginController::class, 'create'])
 
 ---
 
+
+
 ## 動作確認チェックリスト
 
 - [ ] 登録済みユーザーでログイン → `/dashboard` に行ける
@@ -279,29 +394,3 @@ Route::get('/', [LoginController::class, 'create'])
 1. フォームの `action` がルートとずれていて `Auth::attempt` が動いていない
 2. 以前のログインセッションが残っている（ログアウトは [dsc_02-2make-logout.md](./dsc_02-2make-logout.md) で接続済み）
 
----
-
-## 対象コミット（login ブランチ）
-
-| コミット | 内容 |
-|----------|------|
-| [5dd975d](https://github.com/yumyum-02/login-laravel/commit/5dd975d81bf6507a5012206f1d11804ad5fab512) | `LoginController` 作成、`web.php` 接続 |
-| [839dfc8](https://github.com/yumyum-02/login-laravel/commit/839dfc8dc0b81104273664abc7022671f4a514d4) | `login.blade.php`（CSRF・`@error`・`old`） |
-| [649217d](https://github.com/yumyum-02/login-laravel/commit/649217d825aeeb395c1d739ffb32b190b4edef5e) | `auth`・`redirectGuestsTo`・フラッシュメッセージ |
-| [65c9973](https://github.com/yumyum-02/login-laravel/commit/65c9973f364c91d51d853e0a6aac94c313f9330f) | フォーム `action` を `route('login')` に修正 |
-
-変更ファイル:
-
-- `app/Http/Controllers/LoginController.php`
-- `routes/web.php`
-- `resources/views/auth/login.blade.php`
-- `bootstrap/app.php`
-
----
-
-## 次のステップ案
-
-- ~~ログアウト用ルートの接続と画面から呼ぶボタン~~ → [dsc_02-2make-logout.md](./dsc_02-2make-logout.md)
-- ~~ログイン成功後の `$request->session()->regenerate()`（セッション固定攻撃対策）~~ → `LoginController@store` で実装済み
-- 認証済みユーザー向け `guest` + `redirectUsersTo`（任意）
-- ダッシュボードでログイン中ユーザー情報の表示（`Auth::user()`）

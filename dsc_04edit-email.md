@@ -8,6 +8,40 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["GET /account"] --> B["アカウント情報"]
+  B --> C["GET /edit-email"]
+  C --> D["EditEmailController@edit"]
+  D --> E["変更フォーム"]
+  E --> F["キャンセル"]
+  F --> B
+  E --> G["POST /edit-email"]
+  G --> H{"入力チェック"}
+  H -->|失敗| E
+  H -->|成功| I["メールを小文字化"]
+  I --> J{"自分以外と重複?"}
+  J -->|重複| E
+  J -->|なし| K["メールを更新"]
+  K --> B
+```
+
+上の図は、メールを変える人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["account.blade.php の変更リンク"] --> B["GET を edit に繋ぐ"]
+  B --> C["edit-email.blade.php"]
+  C --> D["EditEmailController と POST"]
+  D --> E["update<br>小文字化・重複チェック・保存"]
+```
+
+---
+
 ## 全体の流れ
 
 ```
@@ -40,6 +74,7 @@ POST /edit-email  → EditEmailController@update
 ### 対象コミット
 
 - 変更画面・コントローラー用意: [acae092](https://github.com/yumyum-02/login-laravel/commit/acae0926b64da0ad4c6da390dd751d971bb242ba)
+- アカウント画面から変更画面へのリンク: [dbf6f1e](https://github.com/yumyum-02/login-laravel/commit/dbf6f1e487bb138d5ee29c406e4f6d12d2a114f3)
 
 ---
 
@@ -63,6 +98,11 @@ public function edit(Request $request): View
     return view('edit-email', ['user' => $request->user()]);
 }
 ```
+
+### 対象コミット
+
+- 変更画面を出すルート: [b43b80e](https://github.com/yumyum-02/login-laravel/commit/b43b80e75d0ab9b7a1cbfd074b0042af7902db53)
+- GET を `edit` に移す: [66164b3](https://github.com/yumyum-02/login-laravel/commit/66164b3a4d5f88de5421cd6fae52c1855ab3130b)
 
 ### 2-2. Blade（`resources/views/edit-email.blade.php`）
 
@@ -111,6 +151,8 @@ Route::post('edit-email', [EditEmailController::class, 'update'])
 ### 対象コミット
 
 - 変更画面・コントローラー用意: [acae092](https://github.com/yumyum-02/login-laravel/commit/acae0926b64da0ad4c6da390dd751d971bb242ba)
+- `@csrf` とエラー表示: [33a5d5e](https://github.com/yumyum-02/login-laravel/commit/33a5d5eba9cb301c80a5f47d0e003ab5dca1d608)
+- CSS を `asset` で読む: [74f9cef](https://github.com/yumyum-02/login-laravel/commit/74f9cef6d64443aa0b43ca7fae7675cd00e7dcce)
 
 ---
 
@@ -220,6 +262,7 @@ return redirect()->route('account');
 ### 対象コミット
 
 - バリデーション・更新・エラー表示: [921ed1e](https://github.com/yumyum-02/login-laravel/commit/921ed1eeb7da86a53efd571c49fb0157b9a74f6a)
+- 小文字にしてから自分以外の重複を見る: [ffe1918](https://github.com/yumyum-02/login-laravel/commit/ffe1918a8f182cedd3199e4ae583bb637b2bde93)
 
 ---
 

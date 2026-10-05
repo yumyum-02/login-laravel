@@ -26,6 +26,20 @@
 
 ---
 
+## 実装の流れ
+
+この図は、プロジェクトを動かすまでに実行する順番です。
+
+```mermaid
+flowchart TD
+  A["composer install"] --> B[".env を作成・編集"]
+  B --> C["php artisan key:generate"]
+  C --> D["日本語化"]
+  D --> E["DB 接続設定"]
+  E --> F["php artisan migrate"]
+  F --> G["動作確認"]
+```
+
 ## 0. 全体の流れ
 
 ```text

@@ -6,6 +6,39 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["GET /regist"] --> B["RegisterController@create"]
+  B --> C["登録フォーム"]
+  C --> D["POST /regist"]
+  D --> E{"入力チェック"}
+  E -->|失敗| C
+  E -->|成功| F["メールを小文字化"]
+  F --> G{"同じメールがあるか"}
+  G -->|ある| C
+  G -->|ない| H["User::create"]
+  H --> I["ログイン画面<br>完了メッセージ"]
+```
+
+上の図は、登録する人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["画面を用意<br>login / regist / dashboard"] --> B["共通パーツと CSS"]
+  B --> C["regist.blade.php<br>@csrf と送信先"]
+  C --> D["RegisterController<br>create と store"]
+  D --> E["web.php<br>GET / POST /regist"]
+  E --> F["lang/ja/validation.php"]
+  F --> G["User モデル<br>password を hashed"]
+  G --> H["画面のエラー表示と old"]
+```
+
+---
+
 ## 1. フロント準備
 
 ### 1-1. ルート定義（`routes/web.php`）
@@ -58,6 +91,8 @@ Route::get('/dashboard', function () {
 
 - ログイン・登録画面・CSS：[c876586](https://github.com/yumyum-02/login-laravel/commit/c876586f2f650f389a0cbb4696847412b3ab6646)
 - ダッシュボード画面と共通パーツ：[5abc219](https://github.com/yumyum-02/login-laravel/commit/5abc2199300eb8ab9b04132df64d642b5a473bc2)
+- CSS の読み込み修正：[5f16b39](https://github.com/yumyum-02/login-laravel/commit/5f16b3936a60a57e4e33133538f0c5e92aefc5cd)
+- ダッシュボード画面の修正：[1a84d32](https://github.com/yumyum-02/login-laravel/commit/1a84d327801ff9754b8319b98e5c938e6407e0dc)
 
 ---
 
@@ -222,6 +257,10 @@ Route::post('/regist', [RegisterController::class, 'store'])->name('register.sto
 
 `web.php` は URL とコントローラーの対応だけを書く。画面のファイル名は `RegisterController@create` の `view('auth.regist')` が指定する。
 
+### 対象コミット
+
+- ルート名 `register.create` / `register.store`：[3ac98ef](https://github.com/yumyum-02/login-laravel/commit/3ac98efff7da703382167f1b5c7c9f9498a2c67c)
+
 ### 2-4. バリデーションルール
 
 参考：[バリデーション](https://readouble.com/laravel/12.x/ja/validation.html) / [利用可能なルール一覧](https://readouble.com/laravel/12.x/ja/validation.html#available-validation-rules)
@@ -383,6 +422,11 @@ value="{{ old('email') }}"
 ```blade
 <a href="{{ url('/regist') }}">会員登録はこちら →</a>
 ```
+
+### 対象コミット
+
+- 会員登録の実装：[dfe0db4](https://github.com/yumyum-02/login-laravel/commit/dfe0db44e69323957cbc2ec19dc22b5e82ed220d)
+- `Password` の use を修正：[658266f](https://github.com/yumyum-02/login-laravel/commit/658266f6fcb88159888b11b1a258c1718c2aa860)
 
 ---
 

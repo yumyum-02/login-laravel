@@ -8,6 +8,37 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["GET /account"] --> B["アカウント情報"]
+  B --> C["GET /edit-username"]
+  C --> D["EditUsernameController@edit"]
+  D --> E["変更フォーム"]
+  E --> F["キャンセル"]
+  F --> B
+  E --> G["POST /edit-username"]
+  G --> H{"入力チェック"}
+  H -->|失敗| E
+  H -->|成功| I["名前を更新"]
+  I --> B
+```
+
+上の図は、名前を変える人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["web.php の /account<br>と account.blade.php"] --> B["GET を edit に繋ぐ"]
+  B --> C["edit-username.blade.php"]
+  C --> D["EditUsernameController と POST"]
+  D --> E["update で名前を保存"]
+```
+
+---
+
 ## 全体の流れ
 
 ```
@@ -64,6 +95,7 @@ CSS と共通パーツ:
 ### 対象コミット
 
 - アカウント情報画面: [77fd917](https://github.com/yumyum-02/login-laravel/commit/77fd9178b9960405d4a2511c18c4fbc3adee57ab)
+- アカウントのパス先頭に `/`：[02e0b4b](https://github.com/yumyum-02/login-laravel/commit/02e0b4b18e12069ee68b61f3cd702b933f801d3f)
 
 ---
 
@@ -85,6 +117,10 @@ public function edit(Request $request): View
     return view('edit-username', ['user' => $request->user()]);
 }
 ```
+
+### 対象コミット
+
+- GET を `edit` に移す：[ef470ac](https://github.com/yumyum-02/login-laravel/commit/ef470aca61704f1cb0c9c5c9bddb8db84f1a6bd0)
 
 ### 2-2. Blade（`resources/views/edit-username.blade.php`）
 

@@ -8,6 +8,32 @@
 
 ---
 
+## 処理の流れ
+
+```mermaid
+flowchart TD
+  A["サイドバーのログアウト"] --> B["POST /logout"]
+  B --> C{"ログイン中か"}
+  C -->|未ログイン| D["ログイン画面へ"]
+  C -->|ログイン中| E["LoginController@destroy"]
+  E --> F["Auth::logout"]
+  F --> G["セッションを捨てる"]
+  G --> H["CSRFトークンを作り直す"]
+  H --> I["GET / ログイン画面"]
+```
+
+上の図は、ログアウトする人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
+
+## 実装の流れ
+
+```mermaid
+flowchart TD
+  A["web.php に POST /logout"] --> B["LoginController@destroy"]
+  B --> C["sidebar のフォーム<br>route logout と @csrf"]
+```
+
+---
+
 ## 全体の流れ
 
 ```
@@ -59,6 +85,10 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 - `middleware('auth')` … ログイン中の人だけがログアウトできる
 - `name('logout')` … Blade から `route('logout')` で呼べる
 
+### 対象コミット
+
+- ログアウトのルート：[0182b8f](https://github.com/yumyum-02/login-laravel/commit/0182b8f0e8375cc1cedde3d484b0c18745f7c341)
+
 ---
 
 ## 3. コントローラー（`LoginController@destroy`）
@@ -86,6 +116,10 @@ public function destroy(Request $request): RedirectResponse
 
 `invalidate` / `regenerateToken` は、ログアウト後に古いセッションが残らないようにするための定石。
 
+### 対象コミット
+
+- `destroy`：[0182b8f](https://github.com/yumyum-02/login-laravel/commit/0182b8f0e8375cc1cedde3d484b0c18745f7c341)
+
 ---
 
 ## 4. サイドバー（`resources/views/components/sidebar.blade.php`）
@@ -107,6 +141,10 @@ public function destroy(Request $request): RedirectResponse
 
 ダッシュボードなど `<x-sidebar>` を置いている画面から、同じボタンでログアウトできる。
 
+### 対象コミット
+
+- サイドバーのログアウトボタン：[0182b8f](https://github.com/yumyum-02/login-laravel/commit/0182b8f0e8375cc1cedde3d484b0c18745f7c341)
+
 ---
 
 ## 動作確認チェックリスト
@@ -116,13 +154,5 @@ public function destroy(Request $request): RedirectResponse
 - [ ] ログアウト後にもう一度ログインできる
 - [ ] 未ログインで `POST /logout` → ログイン画面へ（`auth` のため）
 - [ ] エラー `MethodNotAllowedHttpException`（POST が account / dashboard に飛ぶ）が出ない
-
----
-
-## 変更ファイル
-
-- `routes/web.php`
-- `app/Http/Controllers/LoginController.php`
-- `resources/views/components/sidebar.blade.php`
 
 ---

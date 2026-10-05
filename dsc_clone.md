@@ -25,6 +25,23 @@
 
 ---
 
+## 実装の流れ
+
+この図は、クローンしたあとローカルで動かすまでに実行する順番です。
+
+```mermaid
+flowchart TD
+  A["git clone"] --> B["composer install"]
+  B --> C["npm install"]
+  C --> D["cp .env.example .env"]
+  D --> E["php artisan key:generate"]
+  E --> F[".env を編集"]
+  F --> G["データベース作成"]
+  G --> H["php artisan migrate"]
+  H --> I["php artisan storage:link"]
+  I --> J["php artisan serve"]
+```
+
 ## 1. 全体の流れ
 
 ```text
