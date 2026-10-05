@@ -13,12 +13,6 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin">
-          <i class="bi bi-people-fill"></i>
-          ユーザー一覧
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="/chat">
           <i class="bi bi-chat-text-fill"></i>
           掲示板
@@ -30,6 +24,15 @@
           アカウント情報
         </a>
       </li>
+      <!-- 管理者用 -->
+      @if(Auth::user()->role === 'admin')
+      <li class="nav-item">
+        <a class="nav-link" href="/admin">
+          <i class="bi bi-people-fill"></i>
+          ユーザー一覧
+        </a>
+      </li>
+      @endif
       <li class="nav-item mt-3">
         <form action="{{ route('logout') }}" method="post" class="p-2">
           @csrf
