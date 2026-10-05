@@ -55,7 +55,7 @@ class RegisterController extends Controller
         User::create([
             'name' => $validated['name'],
             'email' => $email,
-            'password' => $validated['password'],  //ハッシュ化
+            'password' => $validated['password'],
         ]);
 
         return redirect('/')->with('message','会員登録が完了しました。ログインしてください。');

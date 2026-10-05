@@ -38,7 +38,7 @@ class LoginController extends Controller
             ]);
         }
 
-        // ログイン前のセッションIDを捨てる
+        // ログイン成功後、セッションIDを作り直す
         $request->session()->regenerate();
 
         // ログイン成功時の処理
