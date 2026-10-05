@@ -13,7 +13,7 @@
 ```
 GET  /edit-email  → クロージャ + auth     → メールアドレス変更フォーム表示
 POST /edit-email  → EditEmailController@update
-                  → バリデーション → DB更新 → /account へ
+                  → バリデーション → 小文字化 → 自分以外の重複チェック → DB更新 → /account へ
 ```
 
 | 画面 / 処理 | URL | 名前 | 備考 |
@@ -117,9 +117,10 @@ Route::post('edit-email', [EditEmailController::class, 'update'])
 
 | 元 PHP | Laravel |
 |--------|---------|
-| メール形式チェック（`filter_var`）・必須・文字数・重複 | `$request->validate([...])` |
-| エラー時に edit-email へ戻す | `validate()` 失敗時に Laravel が自動で戻す |
-| メールアドレスの更新 | `$request->user()->update([...])` |
+| メール形式チェック（`filter_var`）・必須・文字数 | `$request->validate([...])` |
+| 小文字化してから、自分以外との重複 | `mb_strtolower` のあと `User::where(...)->exists()` |
+| エラー時に edit-email へ戻す | `validate()` 失敗、または `ValidationException` で自動で戻す |
+| メールアドレスの更新 | `$request->user()->update(['email' => $email])`（小文字） |
 | `redirect('../admin/account.php')` | `redirect()->route('account')` |
 
 #### コントローラーに書かなくてよいこと
@@ -144,10 +145,13 @@ Route::post('edit-email', [EditEmailController::class, 'update'])
 
 ルール（順番どおり）:
 
+`validate` で見るもの（順番どおり）:
+
 - 必須
 - メールアドレスの形式
 - 255文字以内
-- 他ユーザーと重複していないこと
+
+他ユーザーとの重複は、`validate` のあとで見る。先に小文字にしてから比べる。
 
 元 PHP の形式チェック:
 
@@ -160,13 +164,20 @@ Laravel 版では `email` ルールでよい。
 - `email` … RFC に沿った判定（Laravel らしい書き方）
 - `email:filter` … 元 PHP の `filter_var` に近い（今回は使わない）
 
-重複チェック:
+重複チェックは、会員登録（`RegisterController`）と同じく小文字にしてから行う。
 
-```text
-unique:users,email,{自分のユーザーID}
+```php
+$email = mb_strtolower($validated['email'], 'UTF-8');
+if (User::where('email', $email)->where('id', '!=', $request->user()->id)->exists()) {
+    throw ValidationException::withMessages([
+        'email' => 'そのメールアドレスはすでに使用されています。',
+    ]);
+}
 ```
 
-末尾の ID は「自分の今のメールはそのままOK」にするため。
+`where('id', '!=', ...)` は、自分の今のメールを重複にしないため。
+
+一般的な Laravel では、次の `unique` ルールで「他ユーザーと重なっていないか」を書くことが多い。このプロジェクトは登録・ログインが小文字で揃えているので、ルールの代わりに上の確認にして、保存する文字列も `$email` にしている。
 
 ```php
 'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $request->user()->id],
@@ -182,20 +193,22 @@ unique:users,email,{自分のユーザーID}
 - [Eloquent — 更新](https://readouble.com/laravel/12.x/ja/eloquent.html#updates)
 - [バリデーション済み入力値の取得](https://readouble.com/laravel/12.x/ja/validation.html#working-with-validated-input)
 
-チェックに通った値だけを更新に使う。
+チェックに通った値を小文字にしてから更新に使う。
 
 ```php
 $validated = $request->validate([/* ルール */], [/* メッセージ */]);
 
+$email = mb_strtolower($validated['email'], 'UTF-8');
+
 $request->user()->update([
-    'email' => $validated['email'],
+    'email' => $email,
 ]);
 
 return redirect()->route('account');
 ```
 
 - `$request->user()` … ログイン中ユーザー（= 元の `$_SESSION['user']`）
-- `$validated['email']` … チェック済みの値（`$request->email` より意図がはっきりする）
+- `$email` … チェック済みのメールを小文字にしたもの。`$validated['email']` のままでは大文字が残る
 
 ### 対象コミット
 
@@ -234,13 +247,12 @@ return redirect()->route('account');
 ```php
 $validated = $request->validate(
     [
-        'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $request->user()->id],
+        'email' => ['required', 'email', 'max:255'],
     ],
     [
         'email.required' => 'メールアドレスは必須です。',
         'email.email' => 'メールアドレスの形式が不正です。',
         'email.max' => 'メールアドレスは255文字以内です。',
-        'email.unique' => 'そのメールアドレスはすでに使用されています。',
     ]
 );
 ```
@@ -269,6 +281,8 @@ $validated = $request->validate(
 - [ ] `not-an-email` → 「メールアドレスの形式が不正です。」
 - [ ] 256文字以上 → 「メールアドレスは255文字以内です。」
 - [ ] 他ユーザーが使っているメール → 「そのメールアドレスはすでに使用されています。」
+- [ ] 他ユーザーのメールと大文字小文字だけ違う → 同じメッセージ（小文字にしてから比べる）
+- [ ] `User@example.com` で保存 → account には `user@example.com` と出る
 - [ ] エラー後 → 入力欄にさっきの値が残っている
 
 ### セキュリティ・画面
