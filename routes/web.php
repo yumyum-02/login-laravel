@@ -34,10 +34,7 @@ Route::get('account' , function() {
 })->name('account')->middleware('auth');
 
 // ユーザー情報変更画面表示
-Route::get('edit-username' , function(){
-    $user = Auth::user();
-    return view('edit-username',['user' => $user]);
-})->name('edit-username')->middleware('auth');
+Route::get('edit-username', [EditUsernameController::class, 'edit'])->name('edit-username')->middleware('auth');
 // ユーザー名変更 update
 Route::post('edit-username' , [EditUsernameController::class, 'update'])->name('update-username')->middleware('auth');
 
