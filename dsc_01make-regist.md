@@ -386,11 +386,9 @@ value="{{ old('email') }}"
 
 ---
 
-## 3. 認証（未実装）
+## 3. 認証
 
-参考：[認証](https://readouble.com/laravel/12.x/ja/authentication.html)
-
-次のステップとして、ログイン処理・セッション管理・ダッシュボードへの認証ガードを実装する。
+ログイン・画面保護は [dsc_02-1make-login.md](./dsc_02-1make-login.md) で実装済み。参考：[認証](https://readouble.com/laravel/12.x/ja/authentication.html)
 
 ---
 

@@ -2,7 +2,7 @@
 
 アカウント情報画面の表示と、ユーザー名変更（画面表示・更新処理）を実装した流れをまとめたもの。
 
-前提: [dsc_02make-login.md](./dsc_02make-login.md) のログインが動いていること。
+前提: [dsc_02-1make-login.md](./dsc_02-1make-login.md) のログインが動いていること。
 
 参考サイト: [Laravel 12.x 日本語ドキュメント（readouble.com）](https://readouble.com/laravel/12.x/ja)
 
@@ -11,8 +11,8 @@
 ## 全体の流れ
 
 ```
-GET  /account        → クロージャ + auth     → アカウント情報表示（$user を渡す）
-GET  /edit-username  → クロージャ + auth     → ユーザー名変更フォーム表示
+GET  /account        → クロージャ + auth              → アカウント情報表示（$user を渡す）
+GET  /edit-username  → EditUsernameController@edit     → ユーザー名変更フォーム表示
 POST /edit-username  → EditUsernameController@update
                      → バリデーション → DB更新 → /account へ
 ```
@@ -39,7 +39,7 @@ POST /edit-username  → EditUsernameController@update
 ```php
 use Illuminate\Support\Facades\Auth;
 
-Route::get('account', function () {
+Route::get('/account', function () {
     $user = Auth::user();
     return view('account', ['user' => $user]);
 })->name('account')->middleware('auth');
@@ -71,11 +71,19 @@ CSS と共通パーツ:
 
 ### 2-1. ルート
 
+当初はクロージャだった。現在は `edit` メソッドに移している。
+
 ```php
-Route::get('edit-username', function () {
-    $user = Auth::user();
-    return view('edit-username', ['user' => $user]);
-})->name('edit-username')->middleware('auth');
+Route::get('edit-username', [EditUsernameController::class, 'edit'])
+    ->name('edit-username')
+    ->middleware('auth');
+```
+
+```php
+public function edit(Request $request): View
+{
+    return view('edit-username', ['user' => $request->user()]);
+}
 ```
 
 ### 2-2. Blade（`resources/views/edit-username.blade.php`）
@@ -169,6 +177,8 @@ Laravel 版では Unicode プロパティで同じ意味に書いている。
 'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
 ```
 
+`min:3` は **文字数**。漢字2文字の `太郎` は足りない。登録画面の名前チェックも同じ。
+
 ---
 
 ### 3-3. DB 更新とリダイレクト
@@ -251,7 +261,7 @@ $validated = $request->validate(
 
 ### 正常系
 
-- [ ] `太郎` で保存 → account に移動し、ユーザー名が `太郎`
+- [ ] `山田太郎` で保存 → account に移動し、ユーザー名が `山田太郎`
 - [ ] `user123` で保存 → 成功（英数字）
 - [ ] `abc` で保存 → 成功（最小3文字）
 - [ ] `1234567890123456` で保存 → 成功（最大16文字）
@@ -261,6 +271,7 @@ $validated = $request->validate(
 
 - [ ] （空欄）→ 「ユーザー名は必須です。」
 - [ ] `ab` → 「ユーザー名は3文字以上です。」
+- [ ] `太郎` → 「ユーザー名は3文字以上です。」（2文字）
 - [ ] 17文字以上 → 「ユーザー名は16文字以内です。」
 - [ ] `user@name` → 「半角英数字、ひらがな、カタカナ、漢字のみ…」
 - [ ] エラー後 → 入力欄にさっきの値が残っている

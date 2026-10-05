@@ -11,7 +11,7 @@
 ## 全体の流れ
 
 ```
-GET  /edit-email  → クロージャ + auth     → メールアドレス変更フォーム表示
+GET  /edit-email  → EditEmailController@edit    → メールアドレス変更フォーム表示
 POST /edit-email  → EditEmailController@update
                   → バリデーション → 小文字化 → 自分以外の重複チェック → DB更新 → /account へ
 ```
@@ -47,14 +47,21 @@ POST /edit-email  → EditEmailController@update
 
 ### 2-1. ルート（`routes/web.php`）
 
+当初はクロージャだった。現在は `edit` メソッドに移している。
+
 ```php
 use App\Http\Controllers\EditEmailController;
-use Illuminate\Support\Facades\Auth;
 
-Route::get('edit-email', function () {
-    $user = Auth::user();
-    return view('edit-email', ['user' => $user]);
-})->name('edit-email')->middleware('auth');
+Route::get('edit-email', [EditEmailController::class, 'edit'])
+    ->name('edit-email')
+    ->middleware('auth');
+```
+
+```php
+public function edit(Request $request): View
+{
+    return view('edit-email', ['user' => $request->user()]);
+}
 ```
 
 ### 2-2. Blade（`resources/views/edit-email.blade.php`）

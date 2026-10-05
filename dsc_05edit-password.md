@@ -11,7 +11,7 @@
 ## 全体の流れ
 
 ```
-GET  /edit-password  → クロージャ + auth              → パスワード変更フォーム表示
+GET  /edit-password  → EditPasswordController@edit    → パスワード変更フォーム表示
 POST /edit-password  → EditPasswordController@update
                      → バリデーション → DB更新 → セッション再生成 → /account へ
 ```
@@ -47,14 +47,21 @@ POST /edit-password  → EditPasswordController@update
 
 ### 2-1. ルート（`routes/web.php`）
 
+当初はクロージャだった。現在は `edit` メソッドに移している。
+
 ```php
 use App\Http\Controllers\EditPasswordController;
-use Illuminate\Support\Facades\Auth;
 
-Route::get('edit-password', function () {
-    $user = Auth::user();
-    return view('edit-password', ['user' => $user]);
-})->name('edit-password')->middleware('auth');
+Route::get('edit-password', [EditPasswordController::class, 'edit'])
+    ->name('edit-password')
+    ->middleware('auth');
+```
+
+```php
+public function edit(Request $request): View
+{
+    return view('edit-password', ['user' => $request->user()]);
+}
 ```
 
 ### 2-2. Blade（`resources/views/edit-password.blade.php`）

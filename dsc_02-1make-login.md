@@ -82,13 +82,13 @@ if (! Auth::attempt($credentials)) {
     ]);
 }
 
-// ログイン前のセッションIDを捨てる
+// ログイン成功後、セッションIDを作り直す
 $request->session()->regenerate();
 
 return redirect('/dashboard');
 ```
 
-ログインに成功した直後、ダッシュボードへ移る前に `session()->regenerate()` を呼ぶ。ログイン前のセッション ID を捨て、新しい ID にする。パスワード変更（`EditPasswordController`）でも同じ呼び出しをしている。
+ログインに成功した直後、ダッシュボードへ移る前に `session()->regenerate()` を呼ぶ。古いセッション ID を捨て、新しい ID にする。パスワード変更（`EditPasswordController`）でも同じ呼び出しをしている。
 
 ログアウトの `regenerateToken()` とは別で、こちらはセッション ID 自体を作り直す。
 
@@ -277,7 +277,7 @@ Route::get('/', [LoginController::class, 'create'])
 「登録していないのに入れた」ように見えるときは、まず次を疑う。
 
 1. フォームの `action` がルートとずれていて `Auth::attempt` が動いていない
-2. 以前のログインセッションが残っている（ログアウト未接続のため残りやすい）
+2. 以前のログインセッションが残っている（ログアウトは [dsc_02-2make-logout.md](./dsc_02-2make-logout.md) で接続済み）
 
 ---
 
