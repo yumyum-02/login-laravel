@@ -38,6 +38,9 @@ class LoginController extends Controller
             ]);
         }
 
+        // ログイン前のセッションIDを捨てる
+        $request->session()->regenerate();
+
         // ログイン成功時の処理
         return redirect('/dashboard');
     }

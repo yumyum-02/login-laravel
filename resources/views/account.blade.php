@@ -61,10 +61,14 @@
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <!-- アイコン表示 -->
+                  @if ($user->icon)
+                    <img src="{{ Storage::disk('local')->temporaryUrl($user->icon, now()->addMinutes(5)) }}" alt="アイコン" width="80" height="80" class="rounded-circle">
+                  @else
+                    <img src="{{ asset('images/icon/default-icon.png')}}" alt="アイコン" width="80" height="80" class="rounded-circle">
+                  @endif
                 </div>
                 <div class="col-sm-3 text-end">
-                  <a href="../account-edit/edit-icon.php" class="btn btn-outline-secondary btn-sm">
+                  <a href="{{ route('edit-icon') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>変更
                   </a>
                 </div>
@@ -92,7 +96,7 @@
                   <p class="mb-0">{{ $user->email }}</p>
                 </div>
                 <div class="col-sm-3 text-end">
-                  <a href="../account-edit/edit-email.php" class="btn btn-outline-secondary btn-sm">
+                  <a href="{{ route('edit-email') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>変更
                   </a>
                 </div>
@@ -110,7 +114,7 @@
                   <p class="mb-0 text-muted">••••••••</p>
                 </div>
                 <div class="col-sm-3 text-end">
-                  <a href="../account-edit/edit-password.php" class="btn btn-outline-secondary btn-sm">
+                  <a href="{{ route('edit-password') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>変更
                   </a>
                 </div>

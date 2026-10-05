@@ -66,8 +66,8 @@ Route::get('/dashboard', function () {
 ### 全体の流れ
 
 ```
-GET  /regist  → RegisterController@create  → 登録フォーム表示
-POST /regist  → RegisterController@store   → バリデーション → DB保存 → ログイン画面へリダイレクト
+GET  /regist  （名前: register.create） → RegisterController@create  → 登録フォーム表示
+POST /regist  （名前: register.store）  → RegisterController@store   → バリデーション → DB保存 → ログイン画面へリダイレクト
 ```
 
 ### 元システムからの改善点
@@ -107,7 +107,7 @@ POST /regist  → RegisterController@store   → バリデーション → DB保
 
 | 項目 | 元システム | Laravel 版 |
 |------|-----------|------------|
-| フォーム送信先 | `./exec_register.php`（相対パス） | `/regist`（ルートに対応） |
+| フォーム送信先 | `./exec_register.php`（相対パス） | `route('register.store')`（実体は `POST /regist`） |
 | 画面間リンク | `./regist` など相対パス | `url('/regist')` ヘルパー（環境やサブディレクトリに依存しにくい） |
 
 #### 仕様の見直し（意図的な変更）
@@ -128,11 +128,13 @@ POST /regist  → RegisterController@store   → バリデーション → DB保
 `resources/views/auth/regist.blade.php` のフォームに `@csrf` を追加する。
 
 ```blade
-<form action="/regist" method="post">
+<form action="{{ route('register.store') }}" method="post">
     @csrf
     ...
 </form>
 ```
+
+`action` はパスを直接書かず、名前付きルート `register.store` を使う。URL を変えても、名前が同じならこの行は直さなくてよい。
 
 旧 PHP 版の `<input type="hidden" name="csrf_token">` は不要になる。
 
@@ -152,7 +154,7 @@ php artisan make:controller RegisterController
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -201,7 +203,8 @@ public function store(Request $request): RedirectResponse
 
 **ポイント**
 
-- `create()` のビュー名は `auth.regist`（`auth/` ディレクトリ配下のため）
+- `create()` のビュー名は `auth.regist`（`auth/` ディレクトリ配下のため）。Blade のファイル名は `web.php` には書かない
+- ルート名は GET が `register.create`、POST が `register.store`。フォームの送信先は `route('register.store')`
 - メール重複チェックは `unique` ルールではなく、`mb_strtolower` 後に手動で行う（大文字・小文字を区別しないため）
 - パスワードのハッシュ化は `Hash::make()` ではなく、User モデルの `casts` で自動処理（後述）
 - パスワード強度は元システムより厳格化。Laravel の `Password` ルールで大文字・小文字・数字・記号を各 1 文字以上要求する
@@ -213,9 +216,11 @@ public function store(Request $request): RedirectResponse
 ```php
 use App\Http\Controllers\RegisterController;
 
-Route::get('/regist', [RegisterController::class, 'create']);
-Route::post('/regist', [RegisterController::class, 'store']);
+Route::get('/regist', [RegisterController::class, 'create'])->name('register.create');
+Route::post('/regist', [RegisterController::class, 'store'])->name('register.store');
 ```
+
+`web.php` は URL とコントローラーの対応だけを書く。画面のファイル名は `RegisterController@create` の `view('auth.regist')` が指定する。
 
 ### 2-4. バリデーションルール
 

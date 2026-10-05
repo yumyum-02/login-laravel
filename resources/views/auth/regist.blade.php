@@ -18,7 +18,7 @@
           <div class="card-body p-4">
             <h2 class="card-title text-center mb-4">会員登録</h2>
 
-            <form action="/regist" method="post">
+            <form action="{{ route('register.store') }}" method="post">
               @csrf
               <!-- ユーザー名 -->
               <div class="mb-3">

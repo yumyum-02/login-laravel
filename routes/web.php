@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EditUsernameController;
+use App\Http\Controllers\EditEmailController;
+use App\Http\Controllers\EditPasswordController;
+use App\Http\Controllers\EditIconController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -16,8 +19,8 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth');
 
 // 会員登録画面表示
-Route::get('/regist', [RegisterController::class, 'create']);
-Route::post('/regist', [RegisterController::class, 'store']);
+Route::get('/regist', [RegisterController::class, 'create'])->name('register.create');
+Route::post('/regist', [RegisterController::class, 'store'])->name('register.store');
 
 // ダッシュボード画面表示
 Route::get('/dashboard', function() {
@@ -35,7 +38,35 @@ Route::get('edit-username' , function(){
     $user = Auth::user();
     return view('edit-username',['user' => $user]);
 })->name('edit-username')->middleware('auth');
-
-// ユーザー情報変更処理
 // ユーザー名変更 update
 Route::post('edit-username' , [EditUsernameController::class, 'update'])->name('update-username')->middleware('auth');
+
+// メールアドレス変更画面表示
+Route::get('edit-email' , function(){
+    $user = Auth::user();
+    return view('edit-email',['user' => $user]);
+})->name('edit-email')->middleware('auth');
+// メールアドレス変更 update
+Route::post('edit-email' , [EditEmailController::class, 'update'])->name('update-email')->middleware('auth');
+
+//　パスワード変更画面表示
+Route::get('edit-password' , function(){
+    $user = Auth::user();
+    return view('edit-password', ['user' => $user]);
+})->name('edit-password')->middleware('auth');
+// パスワード変更 update
+Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');
+
+// アイコン変更画面表示
+Route::get('edit-icon' , function(){
+    $user = Auth::user();
+    return view('edit-icon' , ['user' => $user]);
+})->name('edit-icon')->middleware('auth');
+// アイコンアップロード
+Route::post('edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
+// アイコンキャンセル
+Route::post('edit-icon/cancel' , [EditIconController::class, 'cancel'])->name('edit-icon.cancel')->middleware('auth');
+// アイコンリセット
+Route::post('edit-icon/reset' , [EditIconController::class, 'reset'])->name('edit-icon.reset')->middleware('auth');
+// アイコン更新
+Route::post('edit-icon/update' , [EditIconController::class, 'update'])->name('edit-icon.update')->middleware('auth');

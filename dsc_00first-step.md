@@ -26,7 +26,7 @@
 
 ---
 
-## 1. 全体の流れ
+## 0. 全体の流れ
 
 ```text
 composer install
@@ -46,40 +46,26 @@ php artisan migrate
 
 ---
 
-## 2. 依存関係のインストール
-
-### 2.1 MAMP の PHP を使う
-
-Laravel 13 は **PHP 8.3 以上** が必要です。ターミナルで `php -v` を実行し、バージョンを確認してください。
-
-MAMP 付属の PHP を使う場合（パスは MAMP のバージョンにより異なります）:
-
-```bash
-php -v   # PHP 8.4.x と表示されることを確認
-```
-
-MAMP アプリの **Preferences → PHP** で使用するバージョンを 8.3 以上に設定してください。
-
-### 2.2 Composer
-
-```bash
-composer install
-```
-
-フロントエンド（Vite / Tailwind）も使う場合:
-
-```bash
-npm install
-npm run build   # 本番ビルド
-# または開発時
-npm run dev
-```
+## 1. 依存関係のインストール
+参考：https://kinsta.com/jp/blog/install-laravel/#mac-2
+・Homebrew、Node.js、npmはインストール済み
+・MAMPのPHPを使用する
+・Composerが足りない状態だったためインストール
 
 ---
 
-## 3. 環境ファイル（.env）の準備
+## 2. プロジェクトの作成
+
+### 2-1. プロジェクトを作成
+```
+composer create-project --prefer-dist laravel/laravel app-name
+```
+
+### 2-2. 環境ファイル（.env）の作成
 
 `.env` を手動で作成
+・.env.exampleをコピペすることが多い
+・Laravel はアプリが動くとき、起動のたびにそのファイルを読む
 ```
 APP_NAME="Login Laravel"
 APP_ENV=local
@@ -110,17 +96,10 @@ DB_PASSWORD=root
 | `APP_FAKER_LOCALE` | `ja_JP` | Seeder / Factory 用 |
 | `APP_TIMEZONE` | `Asia/Tokyo` | タイムゾーン（後述） |
 
-### 元 PHP システムとの対応
-
-| 元システム | Laravel（MAMP） |
-|-----------|----------------|
-| DB 名 `login_db` | `login_db_laravel`（README.md 準拠） |
-| MySQL root / secret | MAMP デフォルトは `root` / `root`（要確認） |
-| ポート 8080（PHP 組み込みサーバー） | MAMP Apache: `8888` / `artisan serve`: `8000` |
 
 ---
 
-## 4. アプリケーションキーの生成
+### 2-3. アプリケーションキーの生成
 
 セッション暗号化・CSRF などに必要です。
 
@@ -128,16 +107,16 @@ DB_PASSWORD=root
 php artisan key:generate
 ```
 
-`.env` の `APP_KEY` が自動で設定されます。  
+`.env` の `APP_KEY` が自動で設定されます。
 **`APP_KEY` が空のままではアプリは正常に動きません。**
 
 ---
 
-## 5. 日本語化
+## 3. 日本語化
 
 元の PHP システムは画面・メッセージがすべて日本語です。Laravel でも同様にしておくと、バリデーションエラーや認証メッセージが英語にならず済みます。
 
-### 5.1 `.env` でロケールを指定
+### 3-1 `.env` でロケールを指定
 
 ```env
 APP_LOCALE=ja
@@ -147,7 +126,7 @@ APP_FAKER_LOCALE=ja_JP
 
 `config/app.php` は `env('APP_LOCALE', 'en')` を参照するため、`.env` の変更だけで基本設定は完了します。
 
-### 5.2 翻訳ファイルの用意
+### 3-2 翻訳ファイルの用意
 
 Laravel 13 では標準で `lang/` ディレクトリは **含まれていません**。英語の翻訳ファイルを公開するには:
 
@@ -157,9 +136,10 @@ php artisan lang:publish
 
 `lang/en/` に `auth.php`, `validation.php` などが作成されます。
 
-### 5.3 日本語翻訳の追加（2 つの方法）
+### 3-3 日本語翻訳の追加（2 つの方法）
+・今回はAを採用、Bはメモ
 
-#### 方法 A: パッケージを使う（推奨・手軽）
+#### 方法 A: パッケージを使う（手軽）
 
 バリデーション・認証メッセージなどをまとめて日本語化できます。
 
@@ -176,12 +156,11 @@ php artisan lang:add ja
 composer require askdkc/breezejp --dev
 php artisan breezejp
 ```
+これによりlang/ja/にauth.php、pagination.php、passwords.php、validation.phpが日本語の状態で作成される
 
-Breeze 等のスターターキットは使わなくても、バリデーション日本語化だけ利用できます。
+#### 方法 B（メモ）: 手動で `lang/ja/` を作成
 
-#### 方法 B: 手動で `lang/ja/` を作成
-
-パッケージを入れたくない場合は、`lang/en/` を `lang/ja/` にコピーし、各ファイルを日本語に書き換えます。  
+パッケージを入れたくない場合は、`lang/en/` を `lang/ja/` にコピーし、各ファイルを日本語に書き換えます。
 最低限あるとよいファイル:
 
 | ファイル | 用途 |
@@ -191,9 +170,10 @@ Breeze 等のスターターキットは使わなくても、バリデーショ�
 | `lang/ja/passwords.php` | パスワードリセット（将来用） |
 | `lang/ja/pagination.php` | ページネーション（将来用） |
 
-### 5.4 アプリ固有のメッセージ
+### 3-4 アプリ固有のメッセージ
 
 ログイン画面の「ログイン情報が正しくありません。」など、元システム固有の文言は翻訳ファイルではなく **コントローラや Blade に直接書く** か、`lang/ja/messages.php` を自作して `__('messages.login_failed')` のように呼び出します。
+今回はコントローラーに直接書いている。
 
 ```php
 // lang/ja/messages.php（自作例）
@@ -204,18 +184,19 @@ return [
 ];
 ```
 
-### 5.5 日本語化の確認
+### 3-5 日本語化の確認
 
 ```bash
 php artisan tinker
->>> __('validation.required', ['attribute' => 'メールアドレス'])
+
+> __('validation.required', ['attribute' => 'メールアドレス'])
 ```
 
 日本語メッセージが返れば OK です。
 
 ---
 
-## 6. タイムゾーンの設定
+## 4. タイムゾーンの設定
 
 Laravel 11 以降、タイムゾーンは `config/app.php` ではなく `.env` で指定します。
 
@@ -227,9 +208,9 @@ APP_TIMEZONE=Asia/Tokyo
 
 ---
 
-## 7. データベースの設定（MAMP）
+## 5. データベースの設定（MAMP）
 
-### 7.1 MAMP を起動する
+### 5-1 MAMP を起動する
 
 1. MAMP を起動し **Start** をクリック
 2. **Preferences → Web Server** で Apache のポートを確認（デフォルト: `8888`）
@@ -237,7 +218,7 @@ APP_TIMEZONE=Asia/Tokyo
 
 > MAMP PRO や設定変更によりポートが `80` / `3306` になっている場合もあります。必ず MAMP の画面で実際の値を確認してください。
 
-### 7.2 `.env` の DB 設定（MAMP）
+### 5-2 `.env` の DB 設定（MAMP）
 
 MAMP のデフォルト設定を使う場合の例:
 
@@ -263,7 +244,7 @@ DB_PASSWORD=root
 DB_SOCKET=/Applications/MAMP/tmp/mysql/mysql.sock
 ```
 
-### 7.3 データベースの作成
+### 5-3 データベースの作成
 #### SQL で作成する場合:
 
 ```sql
@@ -288,7 +269,7 @@ http://localhost:8888/phpMyAdmin/
 3. 照合順序 `utf8mb4_unicode_ci` を選択
 4. 作成
 
-### 7.4 接続確認
+### 5-4 接続確認
 
 ```bash
 php artisan migrate:status
@@ -303,14 +284,14 @@ php artisan migrate:status
 - `DB_PASSWORD` が MAMP で設定した値と一致しているか
 - ターミナルの `php` が MAMP の PHP 8.3 以上か（`php -v`）
 
-### 7.5 セッション
+### 5-5 セッション
 
 Laravel 13 のデフォルトは `SESSION_DRIVER=database` です。  
 `migrate` 実行時に `sessions` テーブルも作成されるため、追加設定は不要です。
 
 ---
 
-## 8. マイグレーションの実行
+## 6. マイグレーションの実行
 
 Laravelインストール時にデフォルトで存在しているマイグレーションを実行する
 ```bash
@@ -481,8 +462,6 @@ docker compose up -d
 - [ ] `php artisan migrate` 成功
 - [ ] `php artisan serve` または MAMP Apache でウェルカム画面が表示される
 - [ ] （任意）`php artisan storage:link` 実行
-
-すべて完了したら、[make-login.md](./make-login.md) のログイン機能実装に進んでください。
 
 ---
 
