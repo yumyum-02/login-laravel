@@ -28,7 +28,7 @@ Route::get('/dashboard', function() {
 })->middleware('auth');
 
 // アカウント情報画面表示
-Route::get('account' , function() {
+Route::get('/account' , function() {
     $user = Auth::user();
     return view('account',['user' => $user]);
 })->name('account')->middleware('auth');
