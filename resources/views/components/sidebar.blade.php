@@ -13,12 +13,6 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/chat">
-          <i class="bi bi-chat-text-fill"></i>
-          掲示板
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="/account">
           <i class="bi bi-person-fill"></i>
           アカウント情報
