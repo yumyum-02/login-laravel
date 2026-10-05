@@ -49,10 +49,7 @@ Route::get('edit-password', [EditPasswordController::class, 'edit'])->name('edit
 Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');
 
 // アイコン変更画面表示
-Route::get('edit-icon' , function(){
-    $user = Auth::user();
-    return view('edit-icon' , ['user' => $user]);
-})->name('edit-icon')->middleware('auth');
+Route::get('edit-icon', [EditIconController::class, 'edit'])->name('edit-icon')->middleware('auth');
 // アイコンアップロード
 Route::post('edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
 // アイコンキャンセル
