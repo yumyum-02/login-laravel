@@ -48,7 +48,7 @@ class EditIconController extends Controller
 
         // 移動に失敗した場合はエラー
         if (! $path) {
-            return redirect('edit-icon')->withErrors(['アイコンのアップロードに失敗しました']);
+            return redirect('edit-icon')->withErrors(['icon' => 'アイコンのアップロードに失敗しました']);
         }
 
         //　セッションに一時保存したアイコンのパスを保存
@@ -95,7 +95,7 @@ class EditIconController extends Controller
         // exec_edit-icon.php 相当
         // 一時ファイルを本番にして DB を更新 → アカウント画面へ
         if (!$request->session()->has('temp_icon')) {
-            return redirect('edit-icon')->withErrors(['画像がアップロードされていません']);
+            return redirect('edit-icon')->withErrors(['icon' => '画像がアップロードされていません']);
         }
 
         $tempPath = $request->session()->get('temp_icon');
@@ -106,7 +106,7 @@ class EditIconController extends Controller
 
         // 移動に失敗した場合はエラー
         if (! $moved) {
-            return redirect('edit-icon')->withErrors(['アイコンの更新に失敗しました']);
+            return redirect('edit-icon')->withErrors(['icon' => 'アイコンの更新に失敗しました']);
         }
 
         // DB を更新
