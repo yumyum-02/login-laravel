@@ -5,9 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
 class EditPasswordController extends Controller
 {
+    public function edit(Request $request): View
+    {
+        return view('edit-password', ['user' => $request->user()]);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate(
