@@ -32,8 +32,8 @@ Laravel 13 での実装。参考: [Laravel 13.x 日本語ドキュメント](htt
 画像をクリックすると送る。仮も本番も非公開ディスク（`local` = `storage/app/private`）。画面は期限つき URL で出す。
 
 - ルート: `routes/web.php` の POST `edit-icon/upload`
-- コントローラー: `EditIconController.php` の `upload`。画像をチェックする。前の仮があれば消す。新しい仮を保存し、パスをセッションに残して編集画面へ戻る
-- Blade: `edit-icon.blade.php` のアップロード用フォーム。戻ったあとは仮をプレビューする
+- コントローラー: `EditIconController.php` の `upload`。画像をチェックする。前の仮があれば消す。新しい仮を保存し、パスをセッションに残して編集画面へ戻る。保存に失敗したら `withErrors(['icon' => 'アイコンのアップロードに失敗しました'])` で編集画面へ戻る
+- Blade: `edit-icon.blade.php` のアップロード用フォーム。戻ったあとは仮をプレビューする。エラーは `$errors->all()` で出す（欄名は `icon`）
 
 ---
 
@@ -61,10 +61,12 @@ Laravel 13 での実装。参考: [Laravel 13.x 日本語ドキュメント](htt
 
 ## 変更を保存
 
-仮が無ければ「画像がアップロードされていません」で編集画面へ戻る。
+仮が無ければ `withErrors(['icon' => '画像がアップロードされていません'])` で編集画面へ戻る。
 あれば仮を `{id}_{日時}.拡張子` に移し、DB にそのパスを入れてアカウント画面へ戻る。
-移せなければ DB は更新せず「アイコンの更新に失敗しました」で編集画面へ戻る。
+移せなければ DB は更新せず `withErrors(['icon' => 'アイコンの更新に失敗しました'])` で編集画面へ戻る。
 古い本番ファイルは消さない。
+
+欄名を `icon` にする。`['文章']` だけだと 0 番のエラーになり、入力チェックの `icon.required` と袋が揃わない。画面は `$errors->all()` のままで出る。
 
 - ルート: `routes/web.php` の POST `edit-icon/update`
 - コントローラー: `EditIconController.php` の `update`

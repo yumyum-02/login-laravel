@@ -60,7 +60,7 @@
               <!-- エラーメッセージ -->
               @if ($errors->any())
                   <div class="invalid-feedback d-block text-center">
-                      <ul>
+                      <ul class="list-unstyled mb-0">
                           @foreach ($errors->all() as $error)
                               <li>{{ $error }}</li>
                           @endforeach
