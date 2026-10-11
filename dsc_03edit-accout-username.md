@@ -52,7 +52,7 @@ POST /edit-username  → EditUsernameController@update
 |-------------|-----|------|------|
 | アカウント情報 | `GET /account` | `account` | `Auth::user()` で表示 |
 | ユーザー名変更（表示） | `GET /edit-username` | `edit-username` | 元 PHP の `edit-profile` 相当 |
-| ユーザー名変更（更新） | `POST /edit-username` | `update-username` | ルート名は GET と分ける |
+| ユーザー名変更（更新） | `POST /edit-username` | なし | パスが GET と同じなので名前は付けない |
 
 元 PHP ではファイル名が `edit-profile` だったが、わかりやすくするため Laravel 版では `edit-username` にした。
 
@@ -130,10 +130,10 @@ public function edit(Request $request): View
 <input value="{{ old('name') ?? $user->name }}">
 ```
 
-フォームの送信先は **更新用ルート名** にする（画面表示用の `edit-username` ではない）。
+フォームの送信先は画面表示と同じ `route('edit-username')` にする。GET か POST かは `method="post"` が決める。
 
 ```blade
-<form action="{{ route('update-username') }}" method="post">
+<form action="{{ route('edit-username') }}" method="post">
   @csrf
   ...
 </form>
@@ -149,12 +149,11 @@ php artisan make:controller EditUsernameController
 
 ```php
 Route::post('edit-username', [EditUsernameController::class, 'update'])
-    ->name('update-username')
     ->middleware('auth');
 ```
 
-- URL（パス）は GET と同じ `edit-username` でよい
-- `name` は衝突するため `update-username` と分ける
+- URL（パス）は GET と同じ `edit-username`
+- パスが同じなので名前は GET の `edit-username` だけ。`route()` はパスを作るだけで、送信方法はフォームの `method="post"` が決める
 
 ### 対象コミット
 
