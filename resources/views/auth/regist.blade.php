@@ -39,13 +39,13 @@
                   </div>
                 </div>
 
-                @if ($errors->has('name'))
+                @error('name')
                 <div class="invalid-feedback d-block">
                   @foreach ($errors->get('name') as $error)
                     <div>{{ $error }}</div>
                   @endforeach
                 </div>
-                @endif
+                @enderror
               </div>
 
               <!-- メールアドレス -->
@@ -67,13 +67,13 @@
                   </div>
                 </div>
 
-                @if ($errors->has('email'))
+                @error('email')
                 <div class="invalid-feedback d-block">
                   @foreach ($errors->get('email') as $error)
                     <div>{{ $error }}</div>
                   @endforeach
                 </div>
-                @endif
+                @enderror
               </div>
 
               <!-- パスワード -->
@@ -95,13 +95,13 @@
                   </div>
                 </div>
 
-                @if ($errors->has('password'))
+                @error('password')
                   <div class="invalid-feedback d-block">
                   @foreach ($errors->get('password') as $error)
                     <div>{{ $error }}</div>
                   @endforeach
                 </div>
-                @endif
+                @enderror
               </div>
 
               <div class="d-grid gap-2">
