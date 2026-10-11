@@ -51,7 +51,7 @@ POST /edit-password  → EditPasswordController@update
 | 画面 / 処理 | URL | 名前 | 備考 |
 |-------------|-----|------|------|
 | パスワード変更（表示） | `GET /edit-password` | `edit-password` | 元 PHP の `edit-password` 相当 |
-| パスワード変更（更新） | `POST /edit-password` | `update-password` | ルート名は GET と分ける |
+| パスワード変更（更新） | `POST /edit-password` | なし | パスが GET と同じなので名前は付けない |
 
 アカウント情報画面（`/account`）の「変更」リンクから `edit-password` へ遷移する。
 
@@ -111,12 +111,12 @@ CSS と共通パーツ:
 <x-sidebar></x-sidebar>
 ```
 
-フォームの送信先は **更新用ルート名** にする（画面表示用の `edit-password` ではない）。
+フォームの送信先は画面表示と同じ `route('edit-password')` にする。GET か POST かは `method="post"` が決める。
 
 確認用欄の名前は `new_password_confirmation` にする（`same:new_password` で一致チェックするため）。
 
 ```blade
-<form action="{{ route('update-password') }}" method="post">
+<form action="{{ route('edit-password') }}" method="post">
   @csrf
   <input type="password" name="current_password">
   <input type="password" name="new_password">
@@ -135,12 +135,11 @@ php artisan make:controller EditPasswordController
 
 ```php
 Route::post('edit-password', [EditPasswordController::class, 'update'])
-    ->name('update-password')
     ->middleware('auth');
 ```
 
-- URL（パス）は GET と同じ `edit-password` でよい
-- `name` は衝突するため `update-password` と分ける
+- URL（パス）は GET と同じ `edit-password`
+- パスが同じなので名前は GET の `edit-password` だけ。`route()` はパスを作るだけで、送信方法はフォームの `method="post"` が決める
 - 先頭で `use App\Http\Controllers\EditPasswordController;` を忘れない
 
 ### 対象コミット
