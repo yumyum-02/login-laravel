@@ -53,7 +53,7 @@ POST /edit-email  → EditEmailController@update
 | 画面 / 処理 | URL | 名前 | 備考 |
 |-------------|-----|------|------|
 | メール変更（表示） | `GET /edit-email` | `edit-email` | 元 PHP の `edit-email` 相当 |
-| メール変更（更新） | `POST /edit-email` | `update-email` | ルート名は GET と分ける |
+| メール変更（更新） | `POST /edit-email` | なし | パスが GET と同じなので名前は付けない |
 
 アカウント情報画面（`/account`）の「変更」リンクから `edit-email` へ遷移する。
 
@@ -121,10 +121,10 @@ CSS と共通パーツ:
 <input value="{{ old('email') ?? $user->email }}">
 ```
 
-フォームの送信先は **更新用ルート名** にする（画面表示用の `edit-email` ではない）。
+フォームの送信先は画面表示と同じ `route('edit-email')` にする。GET か POST かは `method="post"` が決める。
 
 ```blade
-<form action="{{ route('update-email') }}" method="post">
+<form action="{{ route('edit-email') }}" method="post">
   @csrf
   ...
 </form>
@@ -140,12 +140,11 @@ php artisan make:controller EditEmailController
 
 ```php
 Route::post('edit-email', [EditEmailController::class, 'update'])
-    ->name('update-email')
     ->middleware('auth');
 ```
 
-- URL（パス）は GET と同じ `edit-email` でよい
-- `name` は衝突するため `update-email` と分ける
+- URL（パス）は GET と同じ `edit-email`
+- パスが同じなので名前は GET の `edit-email` だけ。`route()` はパスを作るだけで、送信方法はフォームの `method="post"` が決める
 - 先頭で `use App\Http\Controllers\EditEmailController;` を忘れない
 
 ### 対象コミット
