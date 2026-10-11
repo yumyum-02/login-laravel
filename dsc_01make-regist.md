@@ -120,7 +120,7 @@ Route::get('/dashboard', function () {
 
 | 項目 | 元システム | Laravel 版 |
 |------|-----------|------------|
-| フォーム送信先 | `./exec_register.php`（相対パス） | `route('register.store')`（実体は `POST /regist`） |
+| フォーム送信先 | `./exec_register.php`（相対パス） | `route('register')` かつ `method="post"`（実体は `POST /regist`） |
 | 画面間リンク | `./regist` など相対パス | `url('/regist')` ヘルパー（環境やサブディレクトリに依存しにくい） |
 
 #### 仕様の見直し（意図的な変更）
@@ -141,13 +141,13 @@ Route::get('/dashboard', function () {
 `resources/views/auth/regist.blade.php` のフォームに `@csrf` を追加する。
 
 ```blade
-<form action="{{ route('register.store') }}" method="post">
+<form action="{{ route('register') }}" method="post">
     @csrf
     ...
 </form>
 ```
 
-`action` はパスを直接書かず、名前付きルート `register.store` を使う。URL を変えても、名前が同じならこの行は直さなくてよい。
+`action` はパスを直接書かず、画面用ルートの名前 `register` を使う。`method="post"` なので、同じ `/regist` の POST に届く。パスを変えるときは、`web.php` の GET と POST を同じパスにする。
 
 旧 PHP 版の `<input type="hidden" name="csrf_token">` は不要になる。
 
@@ -217,7 +217,7 @@ public function store(Request $request): RedirectResponse
 **ポイント**
 
 - `create()` のビュー名は `auth.regist`（`auth/` ディレクトリ配下のため）。Blade のファイル名は `web.php` には書かない
-- ルート名は GET が `register.create`、POST が `register.store`。フォームの送信先は `route('register.store')`
+- ルート名は GET の `register` だけ。フォームの送信先は `route('register')`。POST は同じ `/regist` なので名前は付けない
 - メール重複チェックは `unique` ルールではなく、`mb_strtolower` 後に手動で行う（大文字・小文字を区別しないため）
 - パスワードのハッシュ化は `Hash::make()` ではなく、User モデルの `casts` で自動処理（後述）
 - パスワード強度は元システムより厳格化。Laravel の `Password` ルールで大文字・小文字・数字・記号を各 1 文字以上要求する
@@ -229,15 +229,15 @@ public function store(Request $request): RedirectResponse
 ```php
 use App\Http\Controllers\RegisterController;
 
-Route::get('/regist', [RegisterController::class, 'create'])->name('register.create');
-Route::post('/regist', [RegisterController::class, 'store'])->name('register.store');
+Route::get('/regist', [RegisterController::class, 'create'])->name('register');
+Route::post('/regist', [RegisterController::class, 'store']);
 ```
 
-`web.php` は URL とコントローラーの対応だけを書く。画面のファイル名は `RegisterController@create` の `view('auth.regist')` が指定する。
+`web.php` は URL とコントローラーの対応だけを書く。画面のファイル名は `RegisterController@create` の `view('auth.regist')` が指定する。GET と POST のパスは同じ `/regist` なので、名前は画面側の `register` だけにする。
 
 ### 対象コミット
 
-- ルート名 `register.create` / `register.store`：[3ac98ef](https://github.com/yumyum-02/login-laravel/commit/3ac98efff7da703382167f1b5c7c9f9498a2c67c)
+- ルート名を追加：[3ac98ef](https://github.com/yumyum-02/login-laravel/commit/3ac98efff7da703382167f1b5c7c9f9498a2c67c)
 
 ### 2-4. バリデーションルール
 
