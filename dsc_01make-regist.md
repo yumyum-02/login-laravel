@@ -6,7 +6,7 @@
 
 ---
 
-## 処理の流れ
+## 0. 全体の流れ
 
 ```mermaid
 flowchart TD
@@ -20,21 +20,6 @@ flowchart TD
   G -->|ある| C
   G -->|ない| H["User::create"]
   H --> I["ログイン画面<br>完了メッセージ"]
-```
-
-上の図は、登録する人が画面を操作したときの動きです。下は、その機能をファイルに書いていく順番です。
-
-## 実装の流れ
-
-```mermaid
-flowchart TD
-  A["画面を用意<br>login / regist / dashboard"] --> B["共通パーツと CSS"]
-  B --> C["regist.blade.php<br>@csrf と送信先"]
-  C --> D["RegisterController<br>create と store"]
-  D --> E["web.php<br>GET / POST /regist"]
-  E --> F["lang/ja/validation.php"]
-  F --> G["User モデル<br>password を hashed"]
-  G --> H["画面のエラー表示と old"]
 ```
 
 ---
@@ -97,13 +82,6 @@ Route::get('/dashboard', function () {
 ---
 
 ## 2. 会員登録実装
-
-### 全体の流れ
-
-```
-GET  /regist  （名前: register.create） → RegisterController@create  → 登録フォーム表示
-POST /regist  （名前: register.store）  → RegisterController@store   → バリデーション → DB保存 → ログイン画面へリダイレクト
-```
 
 ### 元システムからの改善点
 

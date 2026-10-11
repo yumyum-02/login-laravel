@@ -9,7 +9,7 @@
 
 ## 目次
 
-1. [全体の流れ](#1-全体の流れ)
+1. [全体の流れ](#0-全体の流れ)
 2. [依存関係のインストール](#2-依存関係のインストール)
 3. [環境ファイル（.env）の準備](#3-環境ファイルenvの準備)
 4. [アプリケーションキーの生成](#4-アプリケーションキーの生成)
@@ -26,9 +26,7 @@
 
 ---
 
-## 実装の流れ
-
-この図は、プロジェクトを動かすまでに実行する順番です。
+## 0. 全体の流れ
 
 ```mermaid
 flowchart TD
@@ -38,24 +36,6 @@ flowchart TD
   D --> E["DB 接続設定"]
   E --> F["php artisan migrate"]
   F --> G["動作確認"]
-```
-
-## 0. 全体の流れ
-
-```text
-composer install
-  ↓
-.env を作成・編集
-  ↓
-php artisan key:generate
-  ↓
-日本語化（locale / 翻訳ファイル）
-  ↓
-DB 接続設定
-  ↓
-php artisan migrate
-  ↓
-動作確認（artisan serve または MAMP Apache）
 ```
 
 ---

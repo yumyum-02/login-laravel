@@ -12,7 +12,7 @@
 
 ## 目次
 
-1. [全体の流れ](#1-全体の流れ)
+1. [全体の流れ](#0-全体の流れ)
 2. [リポジトリのクローン](#2-リポジトリのクローン)
 3. [依存関係のインストール](#3-依存関係のインストール)
 4. [環境ファイルの作成](#4-環境ファイルの作成)
@@ -25,9 +25,7 @@
 
 ---
 
-## 実装の流れ
-
-この図は、クローンしたあとローカルで動かすまでに実行する順番です。
+## 0. 全体の流れ
 
 ```mermaid
 flowchart TD
@@ -40,30 +38,6 @@ flowchart TD
   G --> H["php artisan migrate"]
   H --> I["php artisan storage:link"]
   I --> J["php artisan serve"]
-```
-
-## 1. 全体の流れ
-
-```text
-git clone
-  ↓
-composer install
-  ↓
-npm install
-  ↓
-cp .env.example .env
-  ↓
-php artisan key:generate
-  ↓
-.env を編集（DB設定など）
-  ↓
-データベース作成
-  ↓
-php artisan migrate
-  ↓
-php artisan storage:link
-  ↓
-php artisan serve
 ```
 
 ---
