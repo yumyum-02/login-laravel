@@ -46,7 +46,7 @@ Route::post('edit-email' , [EditEmailController::class, 'update'])->name('update
 //　パスワード変更画面表示
 Route::get('edit-password', [EditPasswordController::class, 'edit'])->name('edit-password')->middleware('auth');
 // パスワード変更 update
-Route::post('edit-password' , [EditPasswordController::class, 'update'])->name('update-password')->middleware('auth');
+Route::post('edit-password' , [EditPasswordController::class, 'update'])->middleware('auth');
 
 // アイコン変更画面表示
 Route::get('edit-icon' , function(){

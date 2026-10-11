@@ -34,7 +34,7 @@
               </h5>
             </div>
             <div class="card-body p-4">
-            <form action="{{ route('update-password') }}" method="post">
+            <form action="{{ route('edit-password') }}" method="post">
               @csrf
               <!-- 現在のパスワード -->
               <div class="mb-3">
