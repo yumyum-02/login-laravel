@@ -33,7 +33,7 @@ Route::get('/account' , function() {
     return view('account',['user' => $user]);
 })->name('account')->middleware('auth');
 
-// ユーザー情報変更画面表示
+// ユーザー名変更画面表示
 Route::get('edit-username', [EditUsernameController::class, 'edit'])->name('edit-username')->middleware('auth');
 // ユーザー名変更 update
 Route::post('edit-username' , [EditUsernameController::class, 'update'])->middleware('auth');

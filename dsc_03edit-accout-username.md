@@ -79,6 +79,9 @@ Route::get('/account', function () {
 - `Auth::user()` … 今ログインしているユーザー情報を取る
 - `middleware('auth')` … 未ログインならログイン画面へ送る
 
+[Laravelのミドルウェアとは？](https://zenn.dev/yskn_sid25/articles/6bb62cbc02445f)
+[Laravelのmiddleware authを理解したい](https://qiita.com/washio12/items/59f5cde23b4205973c6b)
+
 ### 1-2. Blade（`resources/views/account.blade.php`）
 
 CSS と共通パーツ:
