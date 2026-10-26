@@ -1,0 +1,7 @@
+{
+  "remote.portsAttributes": {
+    "8000": {
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
