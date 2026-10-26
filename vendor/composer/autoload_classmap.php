@@ -7,6 +7,12 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\EditEmailController' => $baseDir . '/app/Http/Controllers/EditEmailController.php',
+    'App\\Http\\Controllers\\EditIconController' => $baseDir . '/app/Http/Controllers/EditIconController.php',
+    'App\\Http\\Controllers\\EditPasswordController' => $baseDir . '/app/Http/Controllers/EditPasswordController.php',
+    'App\\Http\\Controllers\\EditUsernameController' => $baseDir . '/app/Http/Controllers/EditUsernameController.php',
+    'App\\Http\\Controllers\\LoginController' => $baseDir . '/app/Http/Controllers/LoginController.php',
+    'App\\Http\\Controllers\\RegisterController' => $baseDir . '/app/Http/Controllers/RegisterController.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'ArchTech\\Enums\\Comparable' => $vendorDir . '/archtechx/enums/src/Comparable.php',
