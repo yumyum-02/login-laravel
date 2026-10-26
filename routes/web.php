@@ -34,27 +34,27 @@ Route::get('/account' , function() {
 })->name('account')->middleware('auth');
 
 // ユーザー名変更画面表示
-Route::get('edit-username', [EditUsernameController::class, 'edit'])->name('edit-username')->middleware('auth');
+Route::get('/edit-username', [EditUsernameController::class, 'edit'])->name('edit-username')->middleware('auth');
 // ユーザー名変更 update
-Route::post('edit-username' , [EditUsernameController::class, 'update'])->middleware('auth');
+Route::post('/edit-username' , [EditUsernameController::class, 'update'])->middleware('auth');
 
 // メールアドレス変更画面表示
-Route::get('edit-email', [EditEmailController::class, 'edit'])->name('edit-email')->middleware('auth');
+Route::get('/edit-email', [EditEmailController::class, 'edit'])->name('edit-email')->middleware('auth');
 // メールアドレス変更 update
-Route::post('edit-email' , [EditEmailController::class, 'update'])->middleware('auth');
+Route::post('/edit-email' , [EditEmailController::class, 'update'])->middleware('auth');
 
 //　パスワード変更画面表示
-Route::get('edit-password', [EditPasswordController::class, 'edit'])->name('edit-password')->middleware('auth');
+Route::get('/edit-password', [EditPasswordController::class, 'edit'])->name('edit-password')->middleware('auth');
 // パスワード変更 update
-Route::post('edit-password' , [EditPasswordController::class, 'update'])->middleware('auth');
+Route::post('/edit-password' , [EditPasswordController::class, 'update'])->middleware('auth');
 
 // アイコン変更画面表示
-Route::get('edit-icon', [EditIconController::class, 'edit'])->name('edit-icon')->middleware('auth');
+Route::get('/edit-icon', [EditIconController::class, 'edit'])->name('edit-icon')->middleware('auth');
 // アイコンアップロード
-Route::post('edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
+Route::post('/edit-icon/upload' , [EditIconController::class, 'upload'])->name('edit-icon.upload')->middleware('auth');
 // アイコンキャンセル
-Route::post('edit-icon/cancel' , [EditIconController::class, 'cancel'])->name('edit-icon.cancel')->middleware('auth');
+Route::post('/edit-icon/cancel' , [EditIconController::class, 'cancel'])->name('edit-icon.cancel')->middleware('auth');
 // アイコンリセット
-Route::post('edit-icon/reset' , [EditIconController::class, 'reset'])->name('edit-icon.reset')->middleware('auth');
+Route::post('/edit-icon/reset' , [EditIconController::class, 'reset'])->name('edit-icon.reset')->middleware('auth');
 // アイコン更新
-Route::post('edit-icon/update' , [EditIconController::class, 'update'])->name('edit-icon.update')->middleware('auth');
+Route::post('/edit-icon/update' , [EditIconController::class, 'update'])->name('edit-icon.update')->middleware('auth');
