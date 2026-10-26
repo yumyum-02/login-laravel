@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             session()->flash('error', 'ログインしてください');
             return route('login');
         });
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
