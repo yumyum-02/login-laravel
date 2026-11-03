@@ -1,5 +1,5 @@
 #!/bin/bash
-# Codespace を初めて作ったときだけ実行する。
+# Codespace を codespaces ブランチで初めて作ったときだけ実行する。
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -27,12 +27,19 @@ set_env DB_PASSWORD secret
 
 composer install --no-interaction --prefer-dist
 
-for _ in $(seq 1 30); do
+ok=0
+for _ in $(seq 1 40); do
   if php -r 'try { new PDO("mysql:host=mysql;port=3306;dbname=login_db_laravel", "laravel", "secret"); exit(0); } catch (Throwable $e) { exit(1); }'; then
+    ok=1
     break
   fi
-  sleep 2
+  sleep 3
 done
+
+if [ "$ok" -ne 1 ]; then
+  echo "MySQL に接続できませんでした" >&2
+  exit 1
+fi
 
 if ! grep -q '^APP_KEY=base64:' .env; then
   php artisan key:generate --ansi

@@ -5,8 +5,7 @@ services:
       - ..:/workspaces/${localWorkspaceFolderBasename}:cached
     command: sleep infinity
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
 
   mysql:
     image: mysql:8.4
@@ -18,12 +17,6 @@ services:
       MYSQL_PASSWORD: secret
     volumes:
       - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ularavel", "-psecret"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
 
 volumes:
   mysql-data:
