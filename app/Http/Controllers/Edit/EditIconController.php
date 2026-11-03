@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Edit;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,7 +12,7 @@ class EditIconController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('edit-icon', ['user' => $request->user()]);
+        return view('edit.edit-icon', ['user' => $request->user()]);
     }
 
     public function upload(Request $request): RedirectResponse

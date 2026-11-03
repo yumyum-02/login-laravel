@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Edit;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -11,7 +12,7 @@ class EditPasswordController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('edit-password', ['user' => $request->user()]);
+        return view('edit.edit-password', ['user' => $request->user()]);
     }
 
     public function update(Request $request): RedirectResponse

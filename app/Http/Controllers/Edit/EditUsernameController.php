@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Edit;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,7 +12,7 @@ class EditUsernameController extends Controller
     //create は新しいデータを作る画面、edit はすでにあるデータを直す画面
     public function edit(Request $request): View
     {
-        return view('edit-username', ['user' => $request->user()]);
+        return view('edit.edit-username', ['user' => $request->user()]);
     }
 
     public function update(Request $request): RedirectResponse

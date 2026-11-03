@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
 
 //型宣言に使っている。型宣言自体はなくても動く
 use Illuminate\Http\RedirectResponse;
