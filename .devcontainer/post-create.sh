@@ -29,6 +29,10 @@ if ! php -m | grep -qx bcmath; then
   sudo sh -c 'PHP_INI_DIR=/usr/local/etc/php docker-php-ext-install bcmath'
 fi
 
+if ! php -m | grep -qx pdo_mysql; then
+  sudo sh -c 'PHP_INI_DIR=/usr/local/etc/php docker-php-ext-install pdo_mysql'
+fi
+
 composer install --no-interaction --prefer-dist
 npm install --ignore-scripts
 npm run build

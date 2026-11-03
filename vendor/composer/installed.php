@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-codespaces',
         'version' => 'dev-codespaces',
-        'reference' => '8a23b27347f8e9331a47c1461496a211b7d76597',
+        'reference' => 'fe6b862a913f78bd9e72ada75f83132029cfe07f',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -535,7 +535,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-codespaces',
             'version' => 'dev-codespaces',
-            'reference' => '8a23b27347f8e9331a47c1461496a211b7d76597',
+            'reference' => 'fe6b862a913f78bd9e72ada75f83132029cfe07f',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
