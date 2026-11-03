@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Edit;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class EditEmailController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('edit-email', ['user' => $request->user()]);
+        return view('edit.edit-email', ['user' => $request->user()]);
     }
 
     public function update(Request $request): RedirectResponse
