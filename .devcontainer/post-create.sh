@@ -26,7 +26,7 @@ set_env DB_USERNAME laravel
 set_env DB_PASSWORD secret
 
 if ! php -m | grep -qx bcmath; then
-  sudo docker-php-ext-install bcmath
+  sudo sh -c 'PHP_INI_DIR=/usr/local/etc/php docker-php-ext-install bcmath'
 fi
 
 composer install --no-interaction --prefer-dist
