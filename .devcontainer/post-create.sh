@@ -46,4 +46,5 @@ if ! grep -q '^APP_KEY=base64:' .env; then
 fi
 
 php artisan migrate --force --ansi
+php artisan db:seed --force --ansi
 php artisan storage:link --force --ansi || php artisan storage:link --ansi
