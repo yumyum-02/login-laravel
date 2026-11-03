@@ -613,13 +613,13 @@ class ComposerStaticInit36793882908b6cbdd344b5a4840231db
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\Auth\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/LoginController.php',
+        'App\\Http\\Controllers\\Auth\\RegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegisterController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
-        'App\\Http\\Controllers\\EditEmailController' => __DIR__ . '/../..' . '/app/Http/Controllers/EditEmailController.php',
-        'App\\Http\\Controllers\\EditIconController' => __DIR__ . '/../..' . '/app/Http/Controllers/EditIconController.php',
-        'App\\Http\\Controllers\\EditPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/EditPasswordController.php',
-        'App\\Http\\Controllers\\EditUsernameController' => __DIR__ . '/../..' . '/app/Http/Controllers/EditUsernameController.php',
-        'App\\Http\\Controllers\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/LoginController.php',
-        'App\\Http\\Controllers\\RegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/RegisterController.php',
+        'App\\Http\\Controllers\\Edit\\EditEmailController' => __DIR__ . '/../..' . '/app/Http/Controllers/Edit/EditEmailController.php',
+        'App\\Http\\Controllers\\Edit\\EditIconController' => __DIR__ . '/../..' . '/app/Http/Controllers/Edit/EditIconController.php',
+        'App\\Http\\Controllers\\Edit\\EditPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Edit/EditPasswordController.php',
+        'App\\Http\\Controllers\\Edit\\EditUsernameController' => __DIR__ . '/../..' . '/app/Http/Controllers/Edit/EditUsernameController.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'ArchTech\\Enums\\Comparable' => __DIR__ . '/..' . '/archtechx/enums/src/Comparable.php',
