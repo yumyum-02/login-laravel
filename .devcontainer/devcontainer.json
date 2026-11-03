@@ -1,0 +1,16 @@
+{
+  "name": "login-laravel",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Laravel",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "waitFor": "postCreateCommand"
+}
