@@ -68,11 +68,11 @@
                   </div>
                 </label>
                 <input type="password"
-                       class="form-control @error('new_password') is-invalid @enderror"
-                       name="new_password">
-                  @error('new_password')
+                       class="form-control @error('password') is-invalid @enderror"
+                       name="password">
+                  @error('password')
                     <div class="invalid-feedback d-block">
-                      @foreach ($errors->get('new_password') as $error)
+                      @foreach ($errors->get('password') as $error)
                         <div>{{ $error }}</div>
                       @endforeach
                     </div>
@@ -88,11 +88,11 @@
                   </div>
                 </label>
                 <input type="password"
-                       class="form-control @error('new_password_confirmation') is-invalid @enderror"
-                       name="new_password_confirmation">
-                  @error('new_password_confirmation')
+                       class="form-control @error('password_confirmation') is-invalid @enderror"
+                       name="password_confirmation">
+                  @error('password_confirmation')
                     <div class="invalid-feedback d-block">
-                      @foreach ($errors->get('new_password_confirmation') as $error)
+                      @foreach ($errors->get('password_confirmation') as $error)
                         <div>{{ $error }}</div>
                       @endforeach
                     </div>

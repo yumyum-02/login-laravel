@@ -19,17 +19,9 @@ class EditUsernameController extends Controller
     public function update(Request $request): RedirectResponse
     {
         // バリデーション
-        $validated = $request->validate(
-            [
-                'name' => UserRules::name(),
-            ],
-            [
-                'name.required' => 'ユーザー名は必須です。',
-                'name.regex' => 'ユーザー名は半角英数字、ひらがな、カタカナ、漢字のみ使用できます。',
-                'name.min' => 'ユーザー名は3文字以上です。',
-                'name.max' => 'ユーザー名は16文字以内です。',
-            ]
-        );
+        $validated = $request->validate([
+            'name' => UserRules::name(),
+        ]);
 
         // ユーザー名更新
         $request->user()->update([
