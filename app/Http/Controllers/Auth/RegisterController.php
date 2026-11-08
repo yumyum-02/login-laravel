@@ -29,8 +29,8 @@ class RegisterController extends Controller
         $validated = $request->validate([
             // 名前のバリデーション 必須、正規表現で半角英数字と全角ひらがな、カタカナ、漢字を使用できるようにする
             'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
-            // メールアドレスのバリデーション　必須 メールアドレスの形式、最大255文字、文字列か
-            'email' => ['required', 'email', 'max:255', 'string'],
+            // メールアドレスのバリデーション　必須、メールアドレスの形式、最大255文字
+            'email' => ['required', 'email', 'max:255'],
             // パスワードのバリデーション 必須、正規表現で半角英数字と記号を使用できるようにする、最小8文字、最大64文字
             'password' => [
                 'bail', // エラーが発生したら、残りのバリデーションをスキップする 必須で落ちたらその先のバリデーションをスキップする（ルールが多いためbailを採用）
