@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Edit;
 
 use App\Http\Controllers\Controller;
+use App\Rules\UserRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +21,7 @@ class EditUsernameController extends Controller
         // バリデーション
         $validated = $request->validate(
             [
-                'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
+                'name' => UserRules::name(),
             ],
             [
                 'name.required' => 'ユーザー名は必須です。',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Edit;
 
 use App\Http\Controllers\Controller;
+use App\Rules\UserRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -20,18 +21,7 @@ class EditPasswordController extends Controller
         $validated = $request->validate(
             [
                 'current_password' => ['required', 'current_password'],
-                'new_password' => [
-                    'bail',
-                    'required',
-                    'regex:/^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/',
-                    'min:8',
-                    'max:64',
-                    Password::min(8)
-                        ->letters()
-                        ->mixedCase()
-                        ->numbers()
-                        ->symbols(),
-                ],
+                'new_password' => UserRules::password(),
                 'new_password_confirmation' => ['required', 'same:new_password'],
             ],
             [

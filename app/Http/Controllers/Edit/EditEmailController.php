@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Edit;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Rules\UserRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +22,7 @@ class EditEmailController extends Controller
         // バリデーション
         $validated = $request->validate(
             [
-                'email' => ['required', 'email', 'max:255'],
+                'email' => UserRules::email(),
             ],
             [
                 'email.required' => 'メールアドレスは必須です。',
