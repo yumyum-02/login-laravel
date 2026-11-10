@@ -64,7 +64,6 @@ class EditIconController extends Controller
         // exec_icon_reset.php 相当
         // 仮アイコンや本番アイコンを消してデフォルトに戻す → 編集画面へ
         if ($request->user()->icon) {
-            Storage::disk('local')->delete($request->user()->icon);
             $request->user()->update([
                 'icon' => null,
             ]);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\UserRules;
 
 //型宣言に使っている。型宣言自体はなくても動く
 use Illuminate\Http\RedirectResponse;
@@ -27,22 +28,10 @@ class RegisterController extends Controller
     {
         // バリデーション
         $validated = $request->validate([
-            // 名前のバリデーション 必須、正規表現で半角英数字と全角ひらがな、カタカナ、漢字を使用できるようにする
-            'name' => ['required', 'regex:/^[a-zA-Z0-9 \p{Hiragana}\p{Katakana}\p{Han}]+$/u', 'min:3', 'max:16'],
-            // メールアドレスのバリデーション　必須 メールアドレスの形式、最大255文字、文字列か
-            'email' => ['required', 'email', 'max:255', 'string'],
-            // パスワードのバリデーション 必須、正規表現で半角英数字と記号を使用できるようにする、最小8文字、最大64文字
-            'password' => [
-                'bail', // エラーが発生したら、残りのバリデーションをスキップする 必須で落ちたらその先のバリデーションをスキップする（ルールが多いためbailを採用）
-                'required',
-                'regex:/^[a-zA-Z0-9!@#$%^&*()_+\-=]+$/',
-                'min:8', 'max:64',
-                Password::min(8)
-                    ->letters()      // 英字を1文字以上
-                    ->mixedCase()    // 大文字・小文字を両方
-                    ->numbers()      // 数字を1文字以上
-                    ->symbols(),     // 記号を1文字以上
-            ],
+            // app/Rules/UserRules.php で定義したバリデーションを使用する
+            'name' => UserRules::name(),
+            'email' => UserRules::email(),
+            'password' => UserRules::password(),
         ]);
 
         // メールアドレスの重複チェック
