@@ -18,6 +18,12 @@
           アカウント情報
         </a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('chat') }}">
+          <i class="bi bi-chat-fill"></i>
+          掲示板
+        </a>
+      </li>
       <!-- 管理者用 -->
       @if(Auth::user()->role === 'admin')
       <li class="nav-item">

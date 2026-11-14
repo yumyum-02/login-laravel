@@ -7,6 +7,7 @@ use App\Http\Controllers\Edit\EditUsernameController;
 use App\Http\Controllers\Edit\EditEmailController;
 use App\Http\Controllers\Edit\EditPasswordController;
 use App\Http\Controllers\Edit\EditIconController;
+use App\Http\Controllers\Chat\ChatController;
 use Illuminate\Support\Facades\Auth;
 
 // ログイン画面表示
@@ -58,4 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/edit-icon/reset', [EditIconController::class, 'reset'])->name('edit-icon.reset');
     // アイコン更新
     Route::post('/edit-icon/update', [EditIconController::class, 'update'])->name('edit-icon.update');
+
+    // 掲示板画面表示
+    Route::get('/chat', [ChatController::class, 'create'])->name('chat');
 });
